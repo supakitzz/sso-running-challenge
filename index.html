@@ -804,4 +804,77 @@ function renderCurrentMonth(){
     const bg=isP?'linear-gradient(90deg,#10b981,#34d399)':isO?'linear-gradient(90deg,#f59e0b,#fbbf24)':'linear-gradient(90deg,#ef4444,#fca5a5)';
     const pc=isP?'var(--green)':isO?'var(--gold)':'var(--red)';
     const needed=Math.max(0,r.minKm-r.km);
-    const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(
+    const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(1)+' KM in '+daysLeft+' days':'Month ended';
+    const dailyBars=r.daily&&Object.keys(r.daily).length?Object.entries(r.daily).slice(-14).map(([d,v])=>{
+      const h=Math.min(Math.round(v/30*100),100);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:.8"></div></div>`;
+    }).join(''):'';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9">
+      <div style="width:36px;height:36px;border-radius:50%;background:${avC[i%avC.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${r.runner.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis">${r.runner}</div>
+          <span class="chip ${cc}" style="flex-shrink:0">${ct}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
+            <div style="width:${Math.min(pct,100)}%;height:100%;background:${bg};border-radius:3px;transition:width .4s"></div>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:${pc};white-space:nowrap">${pct.toFixed(1)}%</span>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">${r.km.toFixed(1)} / ${r.minKm} KM &middot; ${note}</div>
+      </div>
+      ${dailyBars?`<div style="display:flex;align-items:flex-end;gap:1px;height:32px;width:60px;flex-shrink:0">${dailyBars}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Radar chart -- completion %
+  const rData=cm.runners.filter(r=>r.minKm>0).slice(0,8);
+  if(rData.length){
+    if(charts.radar)charts.radar.destroy();
+    charts.radar=new Chart(document.getElementById('radarChart'),{
+      type:'radar',
+      data:{
+        labels:rData.map(r=>r.runner.split(' ')[0]),
+        datasets:[{label:'Completion %',data:rData.map(r=>Math.min(r.pct||0,120)),
+          backgroundColor:'rgba(59,130,246,0.12)',borderColor:'#3b82f6',borderWidth:2,
+          pointBackgroundColor:'#3b82f6',pointRadius:3}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.raw.toFixed(1)+'%';}}}},
+        scales:{r:{min:0,max:120,ticks:{font:{size:9},stepSize:30},
+          grid:{color:'rgba(148,163,184,.3)'},
+          pointLabels:{font:{size:10}}}}}
+    });
+  }
+
+  // Pace table
+  const paceR=cm.runners.filter(r=>!r.passed&&r.minKm>0&&daysLeft>0)
+    .map(r=>({name:r.runner,remaining:+(r.minKm-r.km).toFixed(1),dailyNeeded:+((r.minKm-r.km)/daysLeft).toFixed(2)}))
+    .sort((a,b)=>a.dailyNeeded-b.dailyNeeded);
+  document.getElementById('pace-table').innerHTML=paceR.length?
+    `<table style="width:100%;font-size:11px;border-collapse:collapse">
+      <tr style="color:#94a3b8;text-align:left"><th style="padding:4px 6px">Runner</th><th style="padding:4px 6px;text-align:right">Remaining</th><th style="padding:4px 6px;text-align:right">KM/day</th></tr>
+      ${paceR.map(r=>`<tr style="border-top:1px solid #f1f5f9"><td style="padding:4px 6px;font-weight:500">${r.name}</td><td style="padding:4px 6px;text-align:right;color:#64748b">${r.remaining} KM</td><td style="padding:4px 6px;text-align:right;font-weight:600;color:${r.dailyNeeded>10?'var(--red)':r.dailyNeeded>7?'var(--gold)':'var(--green)'}">${r.dailyNeeded}</td></tr>`).join('')}
+    </table>`
+    :'<p style="color:var(--muted);font-size:12px;text-align:center;padding:16px">All runners on track! 🎉</p>';
+}
+
+// =================================================
+//  HELPERS
+// =================================================
+function fmtTime(d){
+  if(!d) return '--';
+  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+// =================================================
+//  INIT
+// =================================================
+document.addEventListener('DOMContentLoaded',function(){
+  fetchData(false);
+  startCountdown();
+});
+</script>
+</body>
+</html>
