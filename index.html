@@ -240,7 +240,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
     <div class="g-32">
       <div class="card">
-        <div class="card-head">Performance by Company <span class="tag tag-blue">All-Time KM</span></div>
+        <div class="card-head">Performance by Individual <span class="tag tag-blue">All-Time KM</span></div>
         <div id="co-bars"></div>
         <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
           <div><div style="font-size:17px;font-weight:800" id="stat-avg">--</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Avg KM / runner</div></div>
@@ -249,7 +249,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         </div>
       </div>
       <div class="card">
-        <div class="card-head">KM Share by Company</div>
+        <div class="card-head">KM Share by Runner</div>
         <div class="ch ch-200"><canvas id="donutChart"></canvas></div>
       </div>
     </div>
@@ -636,14 +636,16 @@ function renderOverview() {
   const teams={STREAM:0,SSO:0,CGC:0};
   const tcnt={STREAM:0,SSO:0,CGC:0};
   r.forEach(x=>{const t=(x.team||'').toUpperCase();if(teams[t]!==undefined){teams[t]+=x.total;tcnt[t]++;}});
-  const maxT=Math.max(...Object.values(teams));
-  const cCol={STREAM:'#3b82f6',SSO:'#7c3aed',CGC:'#059669'};
-  document.getElementById('co-bars').innerHTML=Object.entries(teams).map(([t,km])=>`
+  const pColors=['#3b82f6','#7c3aed','#059669','#f59e0b','#ef4444','#0891b2','#d97706','#7e22ce','#0f766e','#dc2626'];
+  const tCls={STREAM:'ts',SSO:'tt',CGC:'tc'};
+  const top10=r.slice(0,10);
+  const maxR=top10[0]?.total||1;
+  document.getElementById('co-bars').innerHTML=top10.map((x,i)=>`
     <div class="co-row">
-      <div class="co-dot" style="background:${cCol[t]}"></div>
-      <div class="co-name" style="color:${cCol[t]}">${t}</div>
-      <div class="co-bg"><div class="co-fill" style="width:${maxT?Math.round(km/maxT*100):0}%;background:${cCol[t]}"></div></div>
-      <div class="co-stat"><div class="co-km">${km.toLocaleString()} KM</div><div class="co-ppl">${tcnt[t]} runners</div></div>
+      <div class="co-dot" style="background:${pColors[i%pColors.length]}"></div>
+      <div style="font-size:12px;font-weight:700;width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${pColors[i%pColors.length]}" title="${x.name}">${x.name}</div>
+      <div class="co-bg"><div class="co-fill" style="width:${Math.round(x.total/maxR*100)}%;background:${pColors[i%pColors.length]}"></div></div>
+      <div class="co-stat"><div class="co-km">${x.total.toLocaleString()} KM</div><div class="co-ppl ${tCls[x.team]||''}">${x.team}</div></div>
     </div>`).join('');
 
   document.getElementById('stat-avg').textContent=Math.round(totalKm/r.length);
@@ -651,11 +653,12 @@ function renderOverview() {
   document.getElementById('stat-top3').textContent=r.slice(0,3).reduce((s,x)=>s+x.total,0).toLocaleString();
 
   if (charts.donut) charts.donut.destroy();
+  const top8=r.slice(0,8);
   charts.donut=new Chart(document.getElementById('donutChart'),{
     type:'doughnut',
-    data:{labels:['Stream','SSO','CGC'],datasets:[{data:[teams.STREAM,teams.SSO,teams.CGC],backgroundColor:['#3b82f6','#7c3aed','#059669'],borderColor:'#fff',borderWidth:4,hoverOffset:7}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
-      plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,font:{size:11}}},
+    data:{labels:top8.map(x=>x.name),datasets:[{data:top8.map(x=>x.total),backgroundColor:pColors.slice(0,top8.length),borderColor:'#fff',borderWidth:3,hoverOffset:7}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:6,font:{size:10}}},
         tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed.toLocaleString()} KM (${Math.round(c.parsed/totalKm*100)}%)`}}}}
   });
 
@@ -864,12 +867,4 @@ function renderCurrentMonth(){
 //  HELPERS
 // =================================================
 function fmtTime(d){
-  if(!d) return '--';
-  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-}
-
-// =================================================
-//  INIT
-// =================================================
-document.addEventListener('DOMContentLoaded',function(){
-  fetchData(fals
+  if(!
