@@ -867,4 +867,17 @@ function renderCurrentMonth(){
 //  HELPERS
 // =================================================
 function fmtTime(d){
-  if(!
+  if(!d) return '--';
+  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+// =================================================
+//  INIT
+// =================================================
+document.addEventListener('DOMContentLoaded',function(){
+  fetchData(false);
+  startCountdown();
+});
+</script>
+</body>
+</html>
