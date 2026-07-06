@@ -8,10 +8,10 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 :root {
-  --navy:#0a0f1e; --blue:#2563eb; --blue2:#3b82f6; --gold:#f59e0b; --gold2:#fbbf24;
-  --green:#10b981; --teal:#0891b2; --red:#ef4444; --purple:#7c3aed;
-  --bg:#f0f4f8; --card:#fff; --border:#e2e8f0; --text:#0f172a; --sub:#475569; --muted:#94a3b8;
-  --stream:#2563eb; --sso:#7c3aed; --cgc:#059669;
+  --navy:#0a0f1e;--blue:#2563eb;--blue2:#3b82f6;--gold:#f59e0b;--gold2:#fbbf24;
+  --green:#10b981;--teal:#0891b2;--red:#ef4444;--purple:#7c3aed;
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#0f172a;--sub:#475569;--muted:#94a3b8;
+  --stream:#2563eb;--sso:#7c3aed;--cgc:#059669;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -28,28 +28,25 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .nav-tab.active::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold2);display:inline-block}
 .topbar-right{display:flex;align-items:center;gap:12px}
 .sync-info{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.4)}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.sync-blink{animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .sync-btn{background:rgba(37,99,235,.3);border:1px solid rgba(37,99,235,.5);color:#93c5fd;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
 .sync-btn:hover{background:rgba(37,99,235,.5)}
 .sync-btn:disabled{opacity:.5;cursor:default}
+.countdown{font-size:11px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:5px}
+.countdown-bar{width:40px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.countdown-fill{height:100%;background:var(--gold2);transition:width .5s linear;border-radius:2px}
 
-/* ── SETUP SCREEN ── */
-.setup-screen{display:none;min-height:calc(100vh - 60px);align-items:center;justify-content:center;padding:40px}
-.setup-screen.show{display:flex}
-.setup-card{background:var(--card);border-radius:20px;padding:40px;max-width:640px;width:100%;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.08)}
-.setup-title{font-size:22px;font-weight:800;margin-bottom:8px}
-.setup-sub{font-size:14px;color:var(--sub);margin-bottom:28px}
-.step{display:flex;gap:14px;margin-bottom:20px;padding:16px;background:#f8fafc;border-radius:12px;border:1px solid var(--border)}
-.step-num{width:28px;height:28px;border-radius:8px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.step-body{flex:1}
-.step-title{font-size:13px;font-weight:700;margin-bottom:4px}
-.step-desc{font-size:12px;color:var(--sub);line-height:1.6}
-.step-desc code{background:#e2e8f0;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:11px}
-.url-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;margin-top:8px}
-.url-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-.url-save-btn{width:100%;padding:12px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;margin-top:12px;transition:background .2s}
-.url-save-btn:hover{background:#1d4ed8}
+/* ── SHARE NOTICE ── */
+.share-notice{background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom:1px solid rgba(245,158,11,.3);padding:14px 40px;display:none;align-items:center;gap:14px;flex-wrap:wrap}
+.share-notice.show{display:flex}
+.share-notice-icon{font-size:20px}
+.share-notice-body{flex:1}
+.share-notice-title{font-size:13px;font-weight:700;color:#fde68a;margin-bottom:3px}
+.share-notice-sub{font-size:12px;color:rgba(255,255,255,.5)}
+.share-link{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#fde68a;font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .2s}
+.share-link:hover{background:rgba(245,158,11,.25)}
 
 /* ── HERO ── */
 .hero{background:linear-gradient(135deg,var(--navy) 0%,#1a2744 50%,#1e3a8a 100%);padding:36px 40px 32px;position:relative;overflow:hidden}
@@ -68,8 +65,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .sec{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .sec::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* ── GRIDS ── */
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
 .g2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
 .g-32{display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:24px}
@@ -131,7 +126,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .rb-top{display:flex;align-items:center;gap:11px;margin-bottom:9px}
 .rb-av{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0}
 .rb-meta{flex:1}
-.rb-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.rb-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:2px;flex-wrap:wrap}
 .rb-detail{font-size:11px;color:var(--sub)}
 .rb-pct{font-size:20px;font-weight:900;letter-spacing:-1px}
 .rb-pbar{height:9px;background:#e2e8f0;border-radius:5px;overflow:hidden}
@@ -157,19 +152,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .ch{position:relative}
 .ch-250{height:250px}.ch-280{height:280px}.ch-200{height:200px}
 
-/* ── LOADING / ERROR ── */
-.loading-overlay{position:fixed;inset:0;background:rgba(10,15,30,.7);z-index:200;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(10,15,30,.75);z-index:200;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .loading-overlay.hide{display:none}
 .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#f59e0b;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:rgba(255,255,255,.7);font-size:14px;font-weight:600}
 .error-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;color:#7f1d1d;font-size:13px;margin-bottom:16px;display:none}
 .error-banner.show{display:block}
-
-/* ── COUNTDOWN ── */
-.countdown{font-size:11px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:5px}
-.countdown-bar{width:40px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.countdown-fill{height:100%;background:var(--gold2);transition:width .5s linear;border-radius:2px}
 
 /* ── HL ROWS ── */
 .hl{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-radius:9px;margin-bottom:7px;border-left:3px solid}
@@ -182,18 +172,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .hl-purple{background:#f5f3ff;border-color:#7c3aed}.hl-purple .hl-val{color:#4c1d95}
 
 @media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g-32,.g-23{grid-template-columns:1fr}}
-@media(max-width:700px){.topbar{padding:0 16px}.main{padding:16px 16px 48px}.hero{padding:24px 16px}.g2{grid-template-columns:1fr}.nav-tab span.label{display:none}}
+@media(max-width:700px){.topbar{padding:0 16px}.main{padding:16px 16px 48px}.hero{padding:24px 16px}.g2{grid-template-columns:1fr}.nav-tab span.label{display:none}.share-notice{padding:12px 16px}}
 </style>
 </head>
 <body>
 
-<!-- ══ LOADING ══ -->
+<!-- LOADING -->
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
-  <div class="loading-text">Loading data from Google Sheets...</div>
+  <div class="loading-text" id="loading-text">Connecting to Google Sheets...</div>
 </div>
 
-<!-- ══ TOPBAR ══ -->
+<!-- TOPBAR -->
 <nav class="topbar">
   <div class="brand">
     <div class="brand-icon">🏃</div>
@@ -207,50 +197,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
   <div class="topbar-right">
     <div class="countdown"><div class="countdown-bar"><div class="countdown-fill" id="cd-bar" style="width:100%"></div></div><span id="cd-text">5:00</span></div>
-    <div class="sync-info"><div class="sync-dot" id="sync-dot" style="background:var(--muted)"></div><span id="sync-label">--:--</span></div>
+    <div class="sync-info"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">--</span></div>
     <button class="sync-btn" id="sync-btn" onclick="fetchData(true)">↻ Refresh</button>
   </div>
 </nav>
 
-<!-- ══ SETUP SCREEN ══ -->
-<div class="setup-screen" id="setup-screen">
-  <div class="setup-card">
-    <div class="setup-title">🔧 First-time Setup</div>
-    <div class="setup-sub">Connect to Google Sheets via Apps Script to enable live data sync.</div>
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <div class="step-title">Open Apps Script</div>
-        <div class="step-desc">In your Google Sheet → <code>Extensions</code> → <code>Apps Script</code></div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <div class="step-title">Paste Code.gs</div>
-        <div class="step-desc">Replace all code with the contents of <code>Code.gs</code> file, then <strong>Save</strong>.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <div class="step-title">Deploy as Web App</div>
-        <div class="step-desc">Click <code>Deploy</code> → <code>New deployment</code> → Type: <strong>Web app</strong><br>Execute as: <strong>Me</strong> · Who has access: <strong>Anyone</strong> → <code>Deploy</code></div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <div class="step-title">Paste the Web App URL below</div>
-        <div class="step-desc">Copy the URL that starts with <code>https://script.google.com/macros/s/...</code></div>
-        <input class="url-input" id="api-url-input" type="text" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec">
-      </div>
-    </div>
-    <button class="url-save-btn" onclick="saveApiUrl()">Save & Connect →</button>
+<!-- SHARE NOTICE -->
+<div class="share-notice" id="share-notice">
+  <div class="share-notice-icon">🔓</div>
+  <div class="share-notice-body">
+    <div class="share-notice-title">One-time setup: Share your Google Sheet</div>
+    <div class="share-notice-sub">ตั้งค่า sharing เป็น "Anyone with the link → Viewer" เพื่อให้ dashboard ดึงข้อมูลได้</div>
   </div>
+  <a class="share-link" href="https://docs.google.com/spreadsheets/d/1q6-j_DQGN1zdtv8WA0OZYvJfkTN3_eUFc8fiTm9mae4/edit?usp=sharing" target="_blank">Open Sheet →</a>
 </div>
 
-<!-- ══ HERO ══ -->
+<!-- HERO -->
 <div class="hero" id="hero" style="display:none">
   <h1>Running Challenge<br><span>Performance Dashboard</span></h1>
   <div class="hero-sub">Live sync from Google Sheets · Auto-refreshes every 5 minutes</div>
@@ -263,11 +225,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div>
 
-<!-- ══ CONTENT ══ -->
+<!-- CONTENT -->
 <div class="main" id="app-main" style="display:none">
   <div class="error-banner" id="error-banner"></div>
 
-  <!-- ── OVERVIEW ── -->
+  <!-- OVERVIEW -->
   <div class="view active" id="view-overview">
     <div class="sec">Key Metrics</div>
     <div class="g4">
@@ -276,12 +238,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#059669,#34d399)"></div><div class="stat-icon">📅</div><div class="stat-val" id="s-months">--</div><div class="stat-label">Months of Competition</div><div class="stat-note" style="color:var(--green)" id="s-period">--</div></div>
       <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div><div class="stat-icon">🏆</div><div class="stat-val" id="s-top">--</div><div class="stat-label">Top Runner</div><div class="stat-note" style="color:var(--purple)" id="s-top-km">--</div></div>
     </div>
-
     <div class="g-32">
       <div class="card">
         <div class="card-head">Performance by Company <span class="tag tag-blue">All-Time KM</span></div>
         <div id="co-bars"></div>
-        <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
+        <div style="border-top:1px solid var(--border);margin-top:18px;padding-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
           <div><div style="font-size:17px;font-weight:800" id="stat-avg">--</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Avg KM / runner</div></div>
           <div><div style="font-size:17px;font-weight:800" id="stat-avgmo">--</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Avg KM / month</div></div>
           <div><div style="font-size:17px;font-weight:800" id="stat-top3">--</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Top-3 combined</div></div>
@@ -292,7 +253,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <div class="ch ch-200"><canvas id="donutChart"></canvas></div>
       </div>
     </div>
-
     <div class="g2">
       <div class="card">
         <div class="card-head">Project Highlights</div>
@@ -305,11 +265,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
   </div>
 
-  <!-- ── LEADERBOARD ── -->
+  <!-- LEADERBOARD -->
   <div class="view" id="view-leaderboard">
     <div class="card">
       <div class="card-head">Runner Leaderboard — Total Distance <span class="tag tag-gold">All-Time</span></div>
-      <div class="search-wrap"><span class="si">🔍</span><input class="search-input" type="text" placeholder="Search runner..." oninput="filterLB(this.value)" id="lb-q"></div>
+      <div class="search-wrap"><span class="si">🔍</span><input class="search-input" type="text" placeholder="Search runner..." oninput="filterLB(this.value)"></div>
       <div class="filter-row">
         <div class="fp on" onclick="teamFilter('all',this)">All</div>
         <div class="fp s" onclick="teamFilter('stream',this)">Stream</div>
@@ -322,9 +282,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
             <th style="width:40px">#</th>
             <th onclick="sortLB('name')">Runner <span id="sort-name"></span></th>
             <th onclick="sortLB('total')">Total KM <span id="sort-total">↓</span></th>
-            <th class="r" onclick="sortLB('badges')">Badges <span id="sort-badges"></span></th>
-            <th style="width:160px">Progress</th>
-            <th class="r" onclick="sortLB('months')">Months <span id="sort-months"></span></th>
+            <th class="r" onclick="sortLB('months')">Months Active <span id="sort-months"></span></th>
+            <th style="width:160px">Progress Bar</th>
           </tr></thead>
           <tbody id="lb-body"></tbody>
         </table>
@@ -332,7 +291,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
   </div>
 
-  <!-- ── PERFORMANCE ── -->
+  <!-- PERFORMANCE -->
   <div class="view" id="view-performance">
     <div class="card" style="margin-bottom:20px">
       <div class="card-head">Monthly Distance — Top Runners <span class="tag tag-blue">Historical</span></div>
@@ -350,7 +309,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
   </div>
 
-  <!-- ── CURRENT MONTH ── -->
+  <!-- CURRENT MONTH -->
   <div class="view" id="view-current">
     <div class="sec" id="curr-sec">Current Month</div>
     <div class="g4" id="curr-kpis"></div>
@@ -373,107 +332,237 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div>
 
-<!-- ══ FOOTER ══ -->
-<div id="app-footer" style="display:none;background:#0f172a;padding:16px 40px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
-  <span>SSO Running Challenge · Executive Dashboard</span>
-  <span>Stream · SSO · CGC</span>
-  <span id="footer-updated">--</span>
+<div id="app-footer" style="display:none;background:#0f172a;padding:16px 40px;text-align:center;font-size:11px;color:rgba(255,255,255,.3)">
+  <span>SSO Running Challenge · Live from Google Sheets · <span id="footer-updated">--</span></span>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════
-//  CONFIG & STATE
+//  CONFIG  — only edit these if the sheet changes
 // ══════════════════════════════════════════════════
-const LS_KEY = 'sso_api_url';
-const REFRESH_SEC = 300; // 5 minutes
-let API_URL = localStorage.getItem(LS_KEY) || '';
-let state = { runners: [], currentMonth: null, updatedAt: null };
+const SHEET_ID  = '1q6-j_DQGN1zdtv8WA0OZYvJfkTN3_eUFc8fiTm9mae4';
+const GVIZ      = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+const REFRESH   = 300; // seconds
+const MONTH_TAB = { 0:'Jan',1:'Feb',2:'Mar',3:'Apr',4:'May',5:'Jun',6:'July',7:'Aug',8:'Sep',9:'Oct',10:'Nov',11:'Dec' };
+
+let state  = { runners:[], currentMonth:null, updatedAt:null };
 let charts = {};
-let lbSort = { key: 'total', dir: -1 };
+let lbSort = { key:'total', dir:-1 };
 let lbTeam = 'all', lbQ = '';
-let cdTimer = null, cdRemain = REFRESH_SEC;
+let cdTimer, cdRemain = REFRESH;
 
 // ══════════════════════════════════════════════════
-//  INIT
+//  CSV PARSER
 // ══════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  if (!API_URL) {
-    showSetup();
-  } else {
-    fetchData(false);
-    startCountdown();
+function parseCSV(text) {
+  const rows = [];
+  let row=[], field='', inQ=false;
+  for (let i=0; i<text.length; i++) {
+    const ch=text[i];
+    if (inQ) {
+      if (ch==='"') { if (text[i+1]==='"'){field+='"';i++;}else inQ=false; }
+      else field+=ch;
+    } else {
+      if (ch==='"') { inQ=true; }
+      else if (ch===',') { row.push(field.trim()); field=''; }
+      else if (ch==='\n'||ch==='\r') {
+        if (ch==='\r'&&text[i+1]==='\n') i++;
+        row.push(field.trim()); field='';
+        if (row.some(c=>c!=='')) rows.push(row);
+        row=[];
+      } else field+=ch;
+    }
   }
-});
-
-function saveApiUrl() {
-  const url = document.getElementById('api-url-input').value.trim();
-  if (!url.startsWith('https://script.google.com')) {
-    alert('Please enter a valid Apps Script URL (starts with https://script.google.com)');
-    return;
-  }
-  API_URL = url;
-  localStorage.setItem(LS_KEY, url);
-  hideSetup();
-  fetchData(false);
-  startCountdown();
-}
-
-function showSetup() {
-  document.getElementById('setup-screen').classList.add('show');
-  document.getElementById('loading').classList.add('hide');
-}
-function hideSetup() {
-  document.getElementById('setup-screen').classList.remove('show');
+  if (field||row.length){row.push(field.trim());if(row.some(c=>c!==''))rows.push(row);}
+  return rows;
 }
 
 // ══════════════════════════════════════════════════
-//  DATA FETCH
+//  FETCH SHEET
 // ══════════════════════════════════════════════════
-async function fetchData(manual = false) {
-  if (manual) {
-    cdRemain = REFRESH_SEC;
-    document.getElementById('sync-btn').disabled = true;
+async function fetchSheet(name) {
+  const url = GVIZ + encodeURIComponent(name) + '&t=' + Date.now();
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const text = await resp.text();
+  // gviz returns error JSON for non-existent/private sheets
+  if (!text || text.trim().startsWith('{') || text.includes('"status":"error"')) {
+    throw new Error(`Sheet "${name}" not accessible`);
   }
+  return parseCSV(text);
+}
+
+// ══════════════════════════════════════════════════
+//  PARSE ALL SUMMARY
+// ══════════════════════════════════════════════════
+function parseAllSummary(rows) {
+  // Find header row containing "Name"
+  let hIdx=0;
+  for (let i=0;i<Math.min(6,rows.length);i++) {
+    if (rows[i].some(c=>c.trim()==='Name')) { hIdx=i; break; }
+  }
+  const hdr = rows[hIdx];
+  const nameCol = hdr.findIndex(c=>c.trim()==='Name');
+  if (nameCol<0) return [];
+
+  // Collect month columns (skip blank, "Name", "Summary", year numbers, "Total")
+  const SKIP = new Set(['','Name','Summary','Total']);
+  const mCols=[];
+  for (let c=0;c<hdr.length;c++) {
+    const lbl=hdr[c].trim();
+    if (SKIP.has(lbl)||/^\d{4}$/.test(lbl)) continue;
+    if (c!==nameCol) mCols.push({col:c,label:lbl});
+  }
+
+  // Last non-empty column = Total
+  let totalCol=hdr.length-1;
+  for (let c=hdr.length-1;c>=0;c--){if(hdr[c].trim()){totalCol=c;break;}}
+
+  const runners=[];
+  for (let i=hIdx+1;i<rows.length;i++) {
+    const row=rows[i];
+    const raw=(row[nameCol]||'').trim();
+    if (!raw||raw==='Name'||/^[\s-]+$/.test(raw)) continue;
+
+    // Extract team from suffix like "-Stream", "-SSO", "-CGC"
+    const tm=(raw.match(/[-–]\s*(Stream|SSO|CGC)\s*$/i)||[])[1]||'OTHER';
+    const name=raw.replace(/[-–]\s*(Stream|SSO|CGC)\s*$/i,'')
+                  .replace(/\s*Strava\s*/gi,'').replace(/@\S+/g,'').trim();
+    if (!name) continue;
+
+    const monthly={};
+    for (const {col,label} of mCols) {
+      const v=parseFloat((row[col]||'').replace(/,/g,''));
+      if (!isNaN(v)&&v>0) monthly[label]=v;
+    }
+
+    let total=parseFloat((row[totalCol]||'').replace(/,/g,''));
+    if (isNaN(total)||total<=0) total=Object.values(monthly).reduce((s,v)=>s+v,0);
+    if (total>0||Object.keys(monthly).length>0)
+      runners.push({name,fullName:raw,team:tm.toUpperCase(),monthly,total});
+  }
+  return runners.sort((a,b)=>b.total-a.total);
+}
+
+// ══════════════════════════════════════════════════
+//  PARSE CURRENT MONTH
+// ══════════════════════════════════════════════════
+function parseMonthSheet(rows, tabName, now) {
+  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const result={tab:tabName,daysInMonth,today:now.getDate(),runners:[]};
+
+  // Find "No." header row
+  let noRow=-1,noCol=0;
+  for (let r=0;r<Math.min(rows.length,15);r++) {
+    for (let c=0;c<Math.min(rows[r].length,5);c++) {
+      const v=rows[r][c].trim();
+      if (v==='No.'||v==='No'){noRow=r;noCol=c;break;}
+    }
+    if (noRow>=0) break;
+  }
+  if (noRow<0) return parseChampionFallback(rows,result);
+
+  // Skip to first data row (row that starts with "1")
+  let dr=noRow+1;
+  while(dr<rows.length){const v=rows[dr][noCol]?.trim();if(/^\d+$/.test(v)&&+v<=200)break;dr++;}
+
+  for (let r=dr;r<rows.length;r++) {
+    const row=rows[r];
+    const no=parseInt(row[noCol]);
+    if (isNaN(no)||no<=0) continue;
+    const runner = cleanName(row[noCol+1]||'');
+    const champ  = (row[noCol+2]||'').trim();
+    const minKm  = parseFloat(row[noCol+3])||0;
+    const km     = parseFloat((row[noCol+4]||'').replace(/,/g,''))||0;
+    const pctRaw = parseFloat((row[noCol+5]||'').replace('%',''))||0;
+    const pct    = pctRaw||(minKm>0?Math.round(km/minKm*10000)/100:0);
+    const timeStr=(row[noCol+6]||'').trim();
+    const daily={};
+    for (let c=noCol+7;c<row.length;c++){const v=parseFloat(row[c]);if(!isNaN(v)&&v>0)daily[c-(noCol+6)]=v;}
+    result.runners.push({no,runner,champion:champ,minKm,km,pct:Math.round(pct*100)/100,timeStr,daily,passed:minKm>0&&km>=minKm});
+  }
+  return result;
+}
+
+function parseChampionFallback(rows,result) {
+  for (let r=0;r<rows.length;r++) {
+    const row=rows[r];
+    const champ=(row[0]||'').trim();
+    if (!champ||/champion|min|no\.|runner/i.test(champ)) continue;
+    const minKm=parseFloat(row[1])||0;
+    const km=parseFloat((row[2]||'').replace(/,/g,''))||0;
+    const pct=parseFloat((row[3]||'').replace('%',''))||(minKm>0?km/minKm*100:0);
+    if (km>0&&minKm>0)
+      result.runners.push({no:r,runner:champ,champion:champ,minKm,km,pct:Math.round(pct*100)/100,timeStr:row[4]||'',daily:{},passed:km>=minKm});
+  }
+  return result;
+}
+
+function cleanName(raw) {
+  return (raw||'').replace(/\s*Strava\s*/gi,'').replace(/@\S+/g,'').trim();
+}
+
+// ══════════════════════════════════════════════════
+//  FETCH DATA  (main entry point)
+// ══════════════════════════════════════════════════
+async function fetchData(manual=false) {
+  if (manual) { cdRemain=REFRESH; document.getElementById('sync-btn').disabled=true; }
   document.getElementById('loading').classList.remove('hide');
+  document.getElementById('loading-text').textContent='Syncing from Google Sheets...';
   document.getElementById('error-banner').classList.remove('show');
 
   try {
-    const resp = await fetch(API_URL + (API_URL.includes('?') ? '&' : '?') + 'ts=' + Date.now());
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+    // 1) All Summary
+    document.getElementById('loading-text').textContent='Reading All Summary...';
+    const summaryRows = await fetchSheet('All Summary');
+    state.runners = parseAllSummary(summaryRows);
+    if (!state.runners.length) throw new Error('No runner data found in "All Summary" tab. Check sheet name and sharing settings.');
 
-    if (data.error) throw new Error(data.error);
+    // 2) Current month — try multiple tab name candidates
+    document.getElementById('loading-text').textContent='Reading current month data...';
+    const now=new Date();
+    const m=now.getMonth(), y=now.getFullYear(), sy=String(y).slice(2);
+    const base=MONTH_TAB[m];
+    const candidates=[base+y, base+sy, base.slice(0,3)+y, base.slice(0,3)+sy, base, base.toLowerCase()+y];
+    let cmResult=null;
+    for (const c of candidates) {
+      try {
+        const rows=await fetchSheet(c);
+        if (rows.length>2) { cmResult=parseMonthSheet(rows,c,now); break; }
+      } catch(e){/* try next */}
+    }
+    state.currentMonth=cmResult;
+    state.updatedAt=new Date();
 
-    state.runners = data.runners || [];
-    state.currentMonth = data.currentMonth || null;
-    state.updatedAt = new Date(data.updated);
+    // Hide share notice on success
+    document.getElementById('share-notice').classList.remove('show');
 
     renderAll();
+    const dot=document.getElementById('sync-dot');
+    dot.style.background='var(--green)'; dot.classList.add('sync-blink');
+    const ts=fmtTime(state.updatedAt);
+    document.getElementById('sync-label').textContent=ts;
+    document.getElementById('last-updated').textContent='Synced '+ts;
+    document.getElementById('footer-updated').textContent='Last synced: '+ts;
+    if (cmResult) document.getElementById('current-tab-label').textContent=cmResult.tab;
 
-    // Update sync indicator
-    document.getElementById('sync-dot').style.background = 'var(--green)';
-    document.getElementById('sync-label').textContent = fmtTime(state.updatedAt);
-    document.getElementById('last-updated').textContent = 'Last synced: ' + fmtTime(state.updatedAt);
-    document.getElementById('footer-updated').textContent = 'Last updated: ' + fmtTime(state.updatedAt);
-
-    // Update current month tab label
-    if (state.currentMonth?.tab) {
-      document.getElementById('current-tab-label').textContent = state.currentMonth.tab;
-    }
-
-  } catch (err) {
+  } catch(err) {
     console.error(err);
-    const banner = document.getElementById('error-banner');
-    banner.textContent = '⚠ Failed to load data: ' + err.message + ' — showing cached data.';
+    // Show share notice if it looks like a CORS / private sheet error
+    const isAccess = err.message.includes('not accessible')||err.message.includes('Failed to fetch')||err.message.includes('NetworkError');
+    if (isAccess) document.getElementById('share-notice').classList.add('show');
+
+    const banner=document.getElementById('error-banner');
+    banner.textContent='⚠ '+err.message+(state.runners.length?' — showing cached data.':'');
     banner.classList.add('show');
-    document.getElementById('sync-dot').style.background = 'var(--red)';
-    if (!state.runners.length) {
-      showSetup();
-      return;
-    }
+    const dot=document.getElementById('sync-dot');
+    dot.style.background='var(--red)'; dot.classList.remove('sync-blink');
+
+    if (!state.runners.length) { document.getElementById('loading').classList.add('hide'); return; }
+    renderAll();
   } finally {
     document.getElementById('loading').classList.add('hide');
-    document.getElementById('sync-btn').disabled = false;
+    document.getElementById('sync-btn').disabled=false;
   }
 }
 
@@ -482,351 +571,240 @@ async function fetchData(manual = false) {
 // ══════════════════════════════════════════════════
 function startCountdown() {
   if (cdTimer) clearInterval(cdTimer);
-  cdRemain = REFRESH_SEC;
-  cdTimer = setInterval(() => {
+  cdRemain=REFRESH;
+  cdTimer=setInterval(()=>{
     cdRemain--;
-    if (cdRemain <= 0) { cdRemain = REFRESH_SEC; fetchData(false); }
-    const m = Math.floor(cdRemain / 60);
-    const s = cdRemain % 60;
-    document.getElementById('cd-text').textContent = m + ':' + String(s).padStart(2,'0');
-    document.getElementById('cd-bar').style.width = (cdRemain / REFRESH_SEC * 100) + '%';
-  }, 1000);
+    if (cdRemain<=0){cdRemain=REFRESH;fetchData(false);}
+    const m=Math.floor(cdRemain/60), s=cdRemain%60;
+    document.getElementById('cd-text').textContent=m+':'+String(s).padStart(2,'0');
+    document.getElementById('cd-bar').style.width=(cdRemain/REFRESH*100)+'%';
+  },1000);
 }
 
 // ══════════════════════════════════════════════════
 //  VIEW SWITCHER
 // ══════════════════════════════════════════════════
-function showView(id, btn) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
+function showView(id,btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'performance' && !charts.perf) buildPerfCharts();
+  if (id==='performance'&&!charts.perf) buildPerfCharts();
 }
 
 // ══════════════════════════════════════════════════
 //  RENDER ALL
 // ══════════════════════════════════════════════════
 function renderAll() {
-  document.getElementById('hero').style.display = '';
-  document.getElementById('app-main').style.display = '';
-  document.getElementById('app-footer').style.removeProperty('display');
-
-  const r = state.runners;
-  const totalKm = r.reduce((s, x) => s + x.total, 0);
-
-  // Hero pills
-  document.getElementById('pill-runners').textContent = r.length + ' Runners';
-  document.getElementById('pill-km').textContent = totalKm.toLocaleString() + ' Total KM';
-
-  renderOverview();
-  renderLeaderboard();
-  renderCurrentMonth();
-  charts.perf = null; // reset so perf charts rebuild on next view
+  document.getElementById('hero').style.display='';
+  document.getElementById('app-main').style.display='';
+  document.getElementById('app-footer').style.display='';
+  const r=state.runners;
+  const totalKm=r.reduce((s,x)=>s+x.total,0);
+  document.getElementById('pill-runners').textContent=r.length+' Runners';
+  document.getElementById('pill-km').textContent=totalKm.toLocaleString()+' Total KM';
+  renderOverview(); renderLeaderboard(); renderCurrentMonth();
+  charts.perf=null; // reset perf charts
 }
 
 // ── OVERVIEW ──────────────────────────────────────
 function renderOverview() {
-  const r = state.runners;
-  const totalKm = r.reduce((s, x) => s + x.total, 0);
+  const r=state.runners;
+  const totalKm=r.reduce((s,x)=>s+x.total,0);
+  document.getElementById('s-km').textContent=totalKm.toLocaleString();
+  document.getElementById('s-km-note').textContent='≈ '+(totalKm/40075).toFixed(2)+'× around Earth';
+  document.getElementById('s-runners').textContent=r.length;
 
-  // KPI cards
-  document.getElementById('s-km').textContent = totalKm.toLocaleString();
-  document.getElementById('s-km-note').textContent = '≈ ' + (totalKm / 40075).toFixed(2) + '× around Earth';
-  document.getElementById('s-runners').textContent = r.length;
+  const allMonths=new Set();
+  r.forEach(x=>Object.keys(x.monthly||{}).forEach(m=>allMonths.add(m)));
+  document.getElementById('s-months').textContent=allMonths.size;
+  document.getElementById('s-period').textContent='Sep 2024 – Present';
+  const top=r[0];
+  document.getElementById('s-top').textContent=top?.name||'--';
+  document.getElementById('s-top-km').textContent=(top?.total||0).toLocaleString()+' KM total';
 
-  // Months from All Summary monthly keys
-  const allMonths = new Set();
-  r.forEach(x => Object.keys(x.monthly || {}).forEach(m => allMonths.add(m)));
-  document.getElementById('s-months').textContent = allMonths.size;
-  document.getElementById('s-period').textContent = 'Sep 2024 – Present';
-
-  const top = r[0];
-  document.getElementById('s-top').textContent = top?.name || '--';
-  document.getElementById('s-top-km').textContent = (top?.total || 0).toLocaleString() + ' KM total';
-
-  // Company bars
-  const teams = { STREAM: 0, SSO: 0, CGC: 0 };
-  const teamCnt = { STREAM: 0, SSO: 0, CGC: 0 };
-  r.forEach(x => {
-    const t = (x.team || '').toUpperCase();
-    if (teams[t] !== undefined) { teams[t] += x.total; teamCnt[t]++; }
-  });
-  const maxT = Math.max(...Object.values(teams));
-  const coColors = { STREAM: '#3b82f6', SSO: '#7c3aed', CGC: '#059669' };
-  document.getElementById('co-bars').innerHTML = Object.entries(teams).map(([t, km]) => `
+  const teams={STREAM:0,SSO:0,CGC:0};
+  const tcnt={STREAM:0,SSO:0,CGC:0};
+  r.forEach(x=>{const t=(x.team||'').toUpperCase();if(teams[t]!==undefined){teams[t]+=x.total;tcnt[t]++;}});
+  const maxT=Math.max(...Object.values(teams));
+  const cCol={STREAM:'#3b82f6',SSO:'#7c3aed',CGC:'#059669'};
+  document.getElementById('co-bars').innerHTML=Object.entries(teams).map(([t,km])=>`
     <div class="co-row">
-      <div class="co-dot" style="background:${coColors[t]}"></div>
-      <div class="co-name" style="color:${coColors[t]}">${t}</div>
-      <div class="co-bg"><div class="co-fill" style="width:${maxT?Math.round(km/maxT*100):0}%;background:${coColors[t]}"></div></div>
-      <div class="co-stat"><div class="co-km">${km.toLocaleString()} KM</div><div class="co-ppl">${teamCnt[t]} runners</div></div>
+      <div class="co-dot" style="background:${cCol[t]}"></div>
+      <div class="co-name" style="color:${cCol[t]}">${t}</div>
+      <div class="co-bg"><div class="co-fill" style="width:${maxT?Math.round(km/maxT*100):0}%;background:${cCol[t]}"></div></div>
+      <div class="co-stat"><div class="co-km">${km.toLocaleString()} KM</div><div class="co-ppl">${tcnt[t]} runners</div></div>
     </div>`).join('');
 
-  document.getElementById('stat-avg').textContent = Math.round(totalKm / r.length);
-  document.getElementById('stat-avgmo').textContent = Math.round(totalKm / Math.max(allMonths.size, 1));
-  document.getElementById('stat-top3').textContent = r.slice(0, 3).reduce((s, x) => s + x.total, 0).toLocaleString();
+  document.getElementById('stat-avg').textContent=Math.round(totalKm/r.length);
+  document.getElementById('stat-avgmo').textContent=Math.round(totalKm/Math.max(allMonths.size,1));
+  document.getElementById('stat-top3').textContent=r.slice(0,3).reduce((s,x)=>s+x.total,0).toLocaleString();
 
-  // Donut chart
   if (charts.donut) charts.donut.destroy();
-  charts.donut = new Chart(document.getElementById('donutChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Stream', 'SSO', 'CGC'],
-      datasets: [{ data: [teams.STREAM, teams.SSO, teams.CGC], backgroundColor: ['#3b82f6', '#7c3aed', '#059669'], borderColor: '#fff', borderWidth: 4, hoverOffset: 7 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '70%',
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
-        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toLocaleString()} KM (${Math.round(c.parsed/totalKm*100)}%)` } } } }
+  charts.donut=new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{labels:['Stream','SSO','CGC'],datasets:[{data:[teams.STREAM,teams.SSO,teams.CGC],backgroundColor:['#3b82f6','#7c3aed','#059669'],borderColor:'#fff',borderWidth:4,hoverOffset:7}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed.toLocaleString()} KM (${Math.round(c.parsed/totalKm*100)}%)`}}}}
   });
 
-  // Cumulative chart (top runner)
   if (top) {
-    document.getElementById('cumul-label').textContent = top.name;
-    document.getElementById('hm-label').textContent = top.name;
-    const mLabels = Object.keys(top.monthly || {});
-    const vals = mLabels.map(k => top.monthly[k]);
-    const cumul = vals.reduce((acc, v, i) => { acc.push((acc[i - 1] || 0) + v); return acc; }, []);
+    document.getElementById('cumul-label').textContent=top.name;
+    document.getElementById('hm-label').textContent=top.name;
+    const mLbls=Object.keys(top.monthly||{});
+    const vals=mLbls.map(k=>top.monthly[k]);
+    const cumul=vals.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
     if (charts.cumul) charts.cumul.destroy();
-    charts.cumul = new Chart(document.getElementById('cumulChart'), {
-      type: 'line',
-      data: { labels: mLabels, datasets: [{ label: 'Cumulative KM', data: cumul, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.08)', borderWidth: 2.5, pointRadius: 2, tension: 0.4, fill: true }] },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', callbacks: { label: c => ` ${c.raw.toLocaleString()} KM` } } },
-        scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } }, y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } } } }
+    charts.cumul=new Chart(document.getElementById('cumulChart'),{
+      type:'line',
+      data:{labels:mLbls,datasets:[{label:'Cumulative KM',data:cumul,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.08)',borderWidth:2.5,pointRadius:2,tension:0.4,fill:true}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',callbacks:{label:c=>` ${c.raw.toLocaleString()} KM`}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}},y:{grid:{color:'#f1f5f9'},ticks:{font:{size:10}}}}}
     });
-
-    // Heatmap
     buildHeatmap(top);
   }
 
-  // Highlights
-  const best = r.reduce((a, b) => {
-    const bMax = Math.max(...Object.values(b.monthly || {}), 0);
-    const aMax = Math.max(...Object.values(a.monthly || {}), 0);
-    return bMax > aMax ? b : a;
-  }, r[0] || {});
-  const bestMonth = best ? Object.entries(best.monthly || {}).reduce((a, b) => b[1] > a[1] ? b : a, ['', 0]) : ['', 0];
-  document.getElementById('highlights').innerHTML = `
-    <div class="hl hl-gold"><span class="hl-label">🔥 Single-Month Record</span><span class="hl-val">${bestMonth[1]} KM — ${best?.name} (${bestMonth[0]})</span></div>
+  const best=r.reduce((a,b)=>{const bm=Math.max(...Object.values(b.monthly||{}),0),am=Math.max(...Object.values(a.monthly||{}),0);return bm>am?b:a;},r[0]||{});
+  const bm=best?Object.entries(best.monthly||{}).reduce((a,b)=>b[1]>a[1]?b:a,['',0]):['',0];
+  const topT=Object.entries(teams).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('highlights').innerHTML=`
+    <div class="hl hl-gold"><span class="hl-label">🔥 Single-Month Record</span><span class="hl-val">${bm[1]} KM — ${best?.name} (${bm[0]})</span></div>
     <div class="hl hl-blue"><span class="hl-label">👑 Total Distance Leader</span><span class="hl-val">${top?.name} · ${(top?.total||0).toLocaleString()} KM</span></div>
-    <div class="hl hl-green"><span class="hl-label">🏢 Top Company</span><span class="hl-val">Stream · ${teams.STREAM.toLocaleString()} KM</span></div>
+    <div class="hl hl-green"><span class="hl-label">🏢 Top Company</span><span class="hl-val">${topT?.[0]} · ${topT?.[1].toLocaleString()} KM</span></div>
     <div class="hl hl-purple"><span class="hl-label">📅 Months Tracked</span><span class="hl-val">${allMonths.size} months · ${r.length} runners total</span></div>`;
 }
 
 // ── LEADERBOARD ───────────────────────────────────
 function renderLeaderboard() {
-  const maxKm = Math.max(...state.runners.map(r => r.total), 1);
-  const teamColor = { STREAM: 'linear-gradient(90deg,#1d4ed8,#60a5fa)', SSO: 'linear-gradient(90deg,#7c3aed,#a78bfa)', CGC: 'linear-gradient(90deg,#059669,#34d399)' };
-  const teamClass = { STREAM: 'ts', SSO: 'tt', CGC: 'tc' };
-  const teamBg = { STREAM: '#2563eb', SSO: '#7c3aed', CGC: '#059669' };
-
-  let data = [...state.runners].filter(r => {
-    const t = (r.team || '').toUpperCase();
-    const matchTeam = lbTeam === 'all' || t === lbTeam.toUpperCase();
-    const matchQ = !lbQ || r.name.toLowerCase().includes(lbQ.toLowerCase());
-    return matchTeam && matchQ;
-  }).sort((a, b) => {
-    const va = a[lbSort.key] || 0, vb = b[lbSort.key] || 0;
-    return lbSort.dir * (va > vb ? 1 : -1);
+  const maxKm=Math.max(...state.runners.map(r=>r.total),1);
+  const tGrad={STREAM:'linear-gradient(90deg,#1d4ed8,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
+  const tCls={STREAM:'ts',SSO:'tt',CGC:'tc'};
+  const tBg={STREAM:'#2563eb',SSO:'#7c3aed',CGC:'#059669'};
+  const data=[...state.runners].filter(r=>{
+    const t=(r.team||'').toUpperCase();
+    return (lbTeam==='all'||t===lbTeam.toUpperCase())&&(!lbQ||r.name.toLowerCase().includes(lbQ.toLowerCase()));
+  }).sort((a,b)=>{
+    const kv={name:'name',total:'total',months:'months'};
+    const va=kv[lbSort.key]==='months'?Object.keys(a.monthly||{}).length:a[lbSort.key]||0;
+    const vb=kv[lbSort.key]==='months'?Object.keys(b.monthly||{}).length:b[lbSort.key]||0;
+    return lbSort.dir*(va>vb?1:-1);
   });
-
-  document.getElementById('lb-body').innerHTML = data.map((r, i) => {
-    const rank = i + 1;
-    const rankEl = rank === 1 ? '<span class="rb r1">🥇</span>' : rank === 2 ? '<span class="rb r2">🥈</span>' : rank === 3 ? '<span class="rb r3">🥉</span>' : `<span class="rb rn">${rank}</span>`;
-    const months = Object.keys(r.monthly || {}).length;
-    const badges = r.badges > 0 ? '🏆'.repeat(Math.min(r.badges, 8)) + (r.badges > 8 ? '+' + (r.badges - 8) : '') : '—';
-    const pct = Math.round(r.total / maxKm * 100);
-    const t = (r.team || 'OTHER').toUpperCase();
-    return `<tr class="${rank <= 3 ? 'top3' : ''}">
+  document.getElementById('lb-body').innerHTML=data.map((r,i)=>{
+    const rank=i+1;
+    const rankEl=rank===1?'<span class="rb r1">🥇</span>':rank===2?'<span class="rb r2">🥈</span>':rank===3?'<span class="rb r3">🥉</span>':`<span class="rb rn">${rank}</span>`;
+    const months=Object.keys(r.monthly||{}).length;
+    const pct=Math.round(r.total/maxKm*100);
+    const t=(r.team||'OTHER').toUpperCase();
+    return `<tr class="${rank<=3?'top3':''}">
       <td>${rankEl}</td>
-      <td><div class="rc"><div class="av" style="background:${teamBg[t] || '#64748b'}">${r.name.slice(0,2).toUpperCase()}</div>
-        <div><div class="rname">${r.name}</div><div class="rteam ${teamClass[t] || ''}">${t}</div></div></div></td>
-      <td><div class="barcell"><div class="barbg"><div class="barfill" style="width:${pct}%;background:${teamColor[t] || '#64748b'}"></div></div><div class="kmv">${r.total.toLocaleString()}</div></div></td>
-      <td class="r">${badges}</td>
-      <td class="r" style="font-size:13px;font-weight:600">${months}</td>
+      <td><div class="rc"><div class="av" style="background:${tBg[t]||'#64748b'}">${r.name.slice(0,2).toUpperCase()}</div>
+        <div><div class="rname">${r.name}</div><div class="rteam ${tCls[t]||''}">${t}</div></div></div></td>
+      <td><div class="barcell"><div class="barbg"><div class="barfill" style="width:${pct}%;background:${tGrad[t]||'#64748b'}"></div></div><div class="kmv">${r.total.toLocaleString()}</div></div></td>
+      <td class="r" style="font-weight:600">${months}</td>
     </tr>`;
   }).join('');
 }
-
-function filterLB(q) { lbQ = q; renderLeaderboard(); }
-function teamFilter(t, el) {
-  lbTeam = t;
-  document.querySelectorAll('.fp').forEach(p => p.classList.remove('on'));
-  el.classList.add('on');
-  renderLeaderboard();
-}
-function sortLB(key) {
-  if (lbSort.key === key) lbSort.dir *= -1; else { lbSort.key = key; lbSort.dir = -1; }
-  ['name', 'total', 'badges', 'months'].forEach(k => {
-    const el = document.getElementById('sort-' + k);
-    if (el) el.textContent = k === key ? (lbSort.dir === -1 ? '↓' : '↑') : '';
-  });
+function filterLB(q){lbQ=q;renderLeaderboard();}
+function teamFilter(t,el){lbTeam=t;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderLeaderboard();}
+function sortLB(key){
+  if(lbSort.key===key)lbSort.dir*=-1;else{lbSort.key=key;lbSort.dir=-1;}
+  ['name','total','months'].forEach(k=>{const e=document.getElementById('sort-'+k);if(e)e.textContent=k===key?(lbSort.dir===-1?'↓':'↑'):'';});
   renderLeaderboard();
 }
 
 // ── PERFORMANCE ───────────────────────────────────
-function buildPerfCharts() {
-  const top5 = state.runners.slice(0, 5);
-  const allMonths = [];
-  const seen = new Set();
-  top5.forEach(r => Object.keys(r.monthly || {}).forEach(m => { if (!seen.has(m)) { seen.add(m); allMonths.push(m); } }));
-
-  const colors = ['#3b82f6', '#a78bfa', '#06b6d4', '#10b981', '#f59e0b'];
-  const datasets = top5.map((r, i) => ({
-    label: r.name, spanGaps: true,
-    data: allMonths.map(m => r.monthly?.[m] || null),
-    borderColor: colors[i], backgroundColor: i === 0 ? 'rgba(59,130,246,.07)' : 'transparent',
-    borderWidth: i === 0 ? 2.5 : 1.8, pointRadius: 2.5, tension: 0.4, fill: i === 0,
-    hidden: i > 2
+function buildPerfCharts(){
+  const top5=state.runners.slice(0,5);
+  const seen=new Set(),allMonths=[];
+  top5.forEach(r=>Object.keys(r.monthly||{}).forEach(m=>{if(!seen.has(m)){seen.add(m);allMonths.push(m);}}));
+  const colors=['#3b82f6','#a78bfa','#06b6d4','#10b981','#f59e0b'];
+  const datasets=top5.map((r,i)=>({
+    label:r.name,spanGaps:true,
+    data:allMonths.map(m=>r.monthly?.[m]||null),
+    borderColor:colors[i],backgroundColor:i===0?'rgba(59,130,246,.07)':'transparent',
+    borderWidth:i===0?2.5:1.8,pointRadius:2.5,tension:0.4,fill:i===0,hidden:i>2
   }));
-
-  if (charts.perf) charts.perf.destroy();
-  charts.perf = new Chart(document.getElementById('perfChart'), {
-    type: 'line',
-    data: { labels: allMonths, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
-        tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 8 } },
-      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
-        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } }, title: { display: true, text: 'KM / Month', font: { size: 10 }, color: '#94a3b8' } } }
-    }
+  if(charts.perf)charts.perf.destroy();
+  charts.perf=new Chart(document.getElementById('perfChart'),{
+    type:'line',data:{labels:allMonths,datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,font:{size:11}}},tooltip:{backgroundColor:'#0f172a',padding:10}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+        y:{grid:{color:'#f1f5f9'},ticks:{font:{size:10}},title:{display:true,text:'KM / Month',font:{size:10},color:'#94a3b8'}}}}
   });
-
-  // Distribution (bar)
-  const allVals = state.runners.flatMap(r => Object.values(r.monthly || {}));
-  const bins = [0, 0, 0, 0, 0]; // <60, 60-80, 80-100, 100-120, 120+
-  allVals.forEach(v => {
-    if (v < 60) bins[0]++;
-    else if (v < 80) bins[1]++;
-    else if (v < 100) bins[2]++;
-    else if (v < 120) bins[3]++;
-    else bins[4]++;
-  });
-  if (charts.dist) charts.dist.destroy();
-  charts.dist = new Chart(document.getElementById('distChart'), {
-    type: 'bar',
-    data: { labels: ['< 60 KM', '60–80', '80–100', '100–120', '120+ KM'], datasets: [{ label: 'Monthly Sessions', data: bins, backgroundColor: ['#fca5a5', '#fcd34d', '#86efac', '#6ee7b7', '#3b82f6'], borderRadius: 6, borderSkipped: false }] },
-    options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a' } },
-      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } } } }
+  const allVals=state.runners.flatMap(r=>Object.values(r.monthly||{}));
+  const bins=[0,0,0,0,0];
+  allVals.forEach(v=>{if(v<60)bins[0]++;else if(v<80)bins[1]++;else if(v<100)bins[2]++;else if(v<120)bins[3]++;else bins[4]++;});
+  if(charts.dist)charts.dist.destroy();
+  charts.dist=new Chart(document.getElementById('distChart'),{
+    type:'bar',
+    data:{labels:['< 60 KM','60–80','80–100','100–120','120+ KM'],
+      datasets:[{label:'Sessions',data:bins,backgroundColor:['#fca5a5','#fcd34d','#86efac','#6ee7b7','#3b82f6'],borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a'}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f1f5f9'},ticks:{font:{size:10}}}}}
   });
 }
 
 // ── HEATMAP ───────────────────────────────────────
-function buildHeatmap(runner) {
-  const months = Object.keys(runner.monthly || {});
-  const vals = months.map(m => runner.monthly[m]);
-  const maxV = Math.max(...vals, 1);
-  const cells = months.map((m, i) => {
-    const v = vals[i], t = v / maxV;
-    const bg = t < 0.35 ? `rgba(219,234,254,${0.5 + t * 1.5})` : t < 0.65 ? `rgba(59,130,246,${0.5 + t})` : `rgba(30,58,138,${0.75 + t * 0.25})`;
-    return `<div style="aspect-ratio:1;border-radius:4px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:rgba(255,255,255,.85);cursor:default;title='${m}: ${v} KM'" title="${m}: ${v} KM">${v >= 150 ? v : v >= 100 ? v : ''}</div>`;
+function buildHeatmap(runner){
+  const months=Object.keys(runner.monthly||{});
+  const vals=months.map(m=>runner.monthly[m]);
+  const maxV=Math.max(...vals,1);
+  const cells=months.map((m,i)=>{
+    const t=vals[i]/maxV;
+    const bg=t<0.35?`rgba(219,234,254,${0.5+t*1.5})`:t<0.65?`rgba(59,130,246,${0.5+t})`:`rgba(30,58,138,${0.75+t*0.25})`;
+    return `<div style="aspect-ratio:1;border-radius:4px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:rgba(255,255,255,.85)" title="${m}: ${vals[i]} KM">${vals[i]>=100?vals[i]:''}</div>`;
   });
-  document.getElementById('heatmap').innerHTML = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">${cells.join('')}</div>`;
+  document.getElementById('heatmap').innerHTML=`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">${cells.join('')}</div>`;
 }
 
 // ── CURRENT MONTH ─────────────────────────────────
-function renderCurrentMonth() {
-  const cm = state.currentMonth;
-  if (!cm || !cm.runners?.length) {
-    document.getElementById('curr-sec').textContent = 'Current Month — No Data';
-    document.getElementById('curr-runners').innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No runner data available for this month yet.</p>';
+function renderCurrentMonth(){
+  const cm=state.currentMonth;
+  if(!cm||!cm.runners?.length){
+    document.getElementById('curr-sec').textContent='Current Month — No Data';
+    document.getElementById('curr-runners').innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No runner data found for this month tab.<br>Make sure the tab is named e.g. <strong>July2026</strong></p>';
+    document.getElementById('curr-kpis').innerHTML='';
     return;
   }
+  const today=cm.today||new Date().getDate();
+  const days=cm.daysInMonth||30;
+  const daysLeft=days-today;
+  document.getElementById('curr-sec').textContent=cm.tab+' — Day '+today+' / '+days;
+  document.getElementById('current-tab-label').textContent=cm.tab;
 
-  const today = cm.today || new Date().getDate();
-  const days = cm.daysInMonth || 30;
-  const daysLeft = days - today;
-
-  document.getElementById('curr-sec').textContent = cm.tab + ' — Day ' + today + ' / ' + days;
-  document.getElementById('current-tab-label').textContent = cm.tab;
-
-  const passed = cm.runners.filter(r => r.passed).length;
-  const ontrack = cm.runners.filter(r => !r.passed && r.pct >= (today / days * 100 * 0.9)).length;
-  const behind  = cm.runners.filter(r => !r.passed && r.pct < (today / days * 100 * 0.9)).length;
-
-  document.getElementById('curr-kpis').innerHTML = `
+  const passed=cm.runners.filter(r=>r.passed).length;
+  const ontrack=cm.runners.filter(r=>!r.passed&&r.pct>=(today/days*100*0.85)).length;
+  const behind=cm.runners.filter(r=>!r.passed&&r.pct<(today/days*100*0.85)).length;
+  document.getElementById('curr-kpis').innerHTML=`
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#10b981,#34d399)"></div><div class="stat-icon">✅</div><div class="stat-val">${passed}</div><div class="stat-label">Passed target</div></div>
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div><div class="stat-icon">🔄</div><div class="stat-val">${ontrack}</div><div class="stat-label">On track</div></div>
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#ef4444,#fca5a5)"></div><div class="stat-icon">⚠️</div><div class="stat-val">${behind}</div><div class="stat-label">Need to catch up</div></div>
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#0891b2,#67e8f9)"></div><div class="stat-icon">⏳</div><div class="stat-val">${daysLeft}</div><div class="stat-label">Days remaining</div></div>`;
 
-  // Runner blocks
-  const avColors = ['#2563eb', '#0891b2', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0f766e', '#7e22ce'];
-  document.getElementById('curr-runners').innerHTML = cm.runners.map((r, i) => {
-    const pct = r.pct || 0;
-    const isPass = r.passed;
-    const isOn = !isPass && pct >= (today / days * 100 * 0.85);
-    const chipCls = isPass ? 'chip-pass' : isOn ? 'chip-on' : 'chip-warn';
-    const chipTxt = isPass ? '✅ Complete' : isOn ? '🔄 On Track' : '⚠ Behind';
-    const barColor = isPass ? 'linear-gradient(90deg,#10b981,#34d399)' : isOn ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#ef4444,#fca5a5)';
-    const pctColor = isPass ? 'var(--green)' : isOn ? 'var(--gold)' : 'var(--red)';
-    const needed = Math.max(0, r.minKm - r.km);
-    const paceNote = isPass ? '+' + (r.km - r.minKm).toFixed(1) + ' KM over target 🎉' : daysLeft > 0 ? 'Need ' + needed.toFixed(1) + ' KM in ' + daysLeft + ' days' : 'Month ended';
+  const avC=['#2563eb','#0891b2','#7c3aed','#059669','#d97706','#dc2626','#0f766e','#7e22ce'];
+  document.getElementById('curr-runners').innerHTML=cm.runners.map((r,i)=>{
+    const pct=r.pct||0;
+    const isP=r.passed,isO=!isP&&pct>=(today/days*100*0.85);
+    const cc=isP?'chip-pass':isO?'chip-on':'chip-warn';
+    const ct=isP?'✅ Complete':isO?'🔄 On Track':'⚠ Behind';
+    const bg=isP?'linear-gradient(90deg,#10b981,#34d399)':isO?'linear-gradient(90deg,#f59e0b,#fbbf24)':'linear-gradient(90deg,#ef4444,#fca5a5)';
+    const pc=isP?'var(--green)':isO?'var(--gold)':'var(--red)';
+    const needed=Math.max(0,r.minKm-r.km);
+    const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(1)+' KM in '+daysLeft+' days':'Month ended';
     return `<div class="rb-block">
       <div class="rb-top">
-        <div class="rb-av" style="background:${avColors[i % avColors.length]}">${(r.runner||'?').slice(0,2).toUpperCase()}</div>
+        <div class="rb-av" style="background:${avC[i%avC.length]}">${(r.runner||'?').slice(0,2).toUpperCase()}</div>
         <div class="rb-meta">
-          <div class="rb-name">${r.runner || 'Runner ' + r.no}<span class="chip ${chipCls}">${chipTxt}</span>${r.champion ? '<span style="font-size:11px;color:var(--gold)">' + r.champion + '</span>' : ''}</div>
-          <div class="rb-detail">Target: ${r.minKm} KM · ${r.timeStr ? '⏱ ' + r.timeStr : ''}</div>
+          <div class="rb-name">${r.runner||'Runner '+r.no}<span class="chip ${cc}">${ct}</span></div>
+          <div class="rb-detail">Target: ${r.minKm} KM${r.timeStr?' · ⏱ '+r.timeStr:''}</div>
         </div>
-        <div class="rb-pct" style="color:${pctColor}">${pct.toFixed(0)}%</div>
+        <div class="rb-pct" style="color:${pc}">${pct.toFixed(0)}%</div>
       </div>
-      <div class="rb-pbar"><div class="rb-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div>
-      <div class="rb-stats">
-        <span style="font-weight:700">${r.km.toFixed(2)} KM achieved</span>
-        <span style="color:${pctColor};font-weight:600">${paceNote}</span>
-      </div>
+      <div class="rb-pbar"><div class="rb-fill" style="width:${Math.min(pct,100)}%;background:${bg}"></div></div>
+      <div class="rb-stats"><span style="font-weight:700">${r.km.toFixed(2)} KM</span><span style="color:${pc};font-weight:600">${note}</span></div>
     </div>`;
-  }).join('');
-
-  // Radar chart
-  if (charts.radar) charts.radar.destroy();
-  const radarData = cm.runners.slice(0, 5).map(r => ({
-    label: r.runner || 'R' + r.no,
-    data: [
-      Math.min(r.pct, 130),
-      Math.min(r.km / (r.minKm || 1) * 100, 130),
-      Object.keys(r.daily || {}).length * 10,
-      r.passed ? 100 : 50,
-      r.minKm
-    ]
-  }));
-  const radarColors = ['#3b82f6', '#0891b2', '#7c3aed', '#10b981', '#f59e0b'];
-  charts.radar = new Chart(document.getElementById('radarChart'), {
-    type: 'radar',
-    data: {
-      labels: ['vs Target', 'KM %', 'Active Days', 'Status', 'Min KM'],
-      datasets: radarData.map((d, i) => ({ label: d.label, data: d.data, borderColor: radarColors[i], backgroundColor: radarColors[i].replace(')', ',.1)').replace('rgb', 'rgba'), borderWidth: 2, pointRadius: 2 }))
-    },
-    options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } } },
-      scales: { r: { grid: { color: '#e2e8f0' }, ticks: { display: false }, pointLabels: { font: { size: 9 }, color: '#475569' }, min: 0, max: 130 } } }
-  });
-
-  // Pace table
-  document.getElementById('pace-table').innerHTML = cm.runners.map(r => {
-    const needed = Math.max(0, r.minKm - r.km);
-    const pace = daysLeft > 0 ? (needed / daysLeft).toFixed(1) : 0;
-    const bg = r.passed ? '#ecfdf5' : needed / daysLeft > 8 ? '#fef2f2' : '#fffbeb';
-    const val = r.passed ? '✅ Done!' : pace + ' KM / day';
-    const col = r.passed ? 'var(--green)' : needed / daysLeft > 8 ? 'var(--red)' : '#78350f';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:${bg};border-radius:9px;margin-bottom:7px">
-      <span style="font-size:13px;font-weight:600">${r.runner || 'Runner ' + r.no}</span>
-      <span style="font-size:13px;font-weight:700;color:${col}">${val}</span>
-    </div>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════════
-function fmtTime(d) {
-  if (!d) return '--';
-  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-</script>
-</body>
-</html>
+  }).joi
