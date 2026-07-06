@@ -405,18 +405,29 @@ function parseAllSummary(rows) {
   const nameCol = hdr.findIndex(c=>c.trim()==='Name');
   if (nameCol<0) return [];
 
-  // Collect month columns (skip blank, "Name", "Summary", year numbers, "Total")
-  const SKIP = new Set(['','Name','Summary','Total']);
-  const mCols=[];
-  for (let c=0;c<hdr.length;c++) {
-    const lbl=hdr[c].trim();
-    if (SKIP.has(lbl)||/^\d{4}$/.test(lbl)) continue;
-    if (c!==nameCol) mCols.push({col:c,label:lbl});
-  }
+  // NOTE: gviz CSV exports merged-cell headers as empty strings, so month labels
+  // are never returned. We build the column→month map from known fixed positions
+  // (2024-2025) + dynamic detection for 2026+ months.
+  const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','July','Aug','Sep','Oct','Nov','Dec'];
+  const colMap={};
+  // 2024: S01-S03 at cols 2-4, Sep-Dec at cols 5-8
+  ['S01','S02','S03','Sep24','Oct24','Nov24','Dec24'].forEach((m,i)=>colMap[i+2]=m);
+  // 2025: Jan-Dec at cols 10-21
+  ['Jan25','Feb25','Mar25','Apr25','May25','Jun25','Jul25','Aug25','Sep25','Oct25','Nov25','Dec25']
+    .forEach((m,i)=>colMap[i+10]=m);
 
-  // Last non-empty column = Total
-  let totalCol=hdr.length-1;
-  for (let c=hdr.length-1;c>=0;c--){if(hdr[c].trim()){totalCol=c;break;}}
+  // 2026+: dynamic — start at col 23, skip blank-separator cols, stop before Total
+  const dataRows=rows.slice(hIdx+1).filter(r=>(r[nameCol]||'').trim()&&(r[nameCol]||'').trim()!=='Name');
+  // Total col = last col where any runner has value > 500
+  let totalCol=-1;
+  for (let c=(rows[0]||[]).length-1;c>nameCol;c--) {
+    if (dataRows.some(r=>parseFloat((r[c]||'').replace(/,/g,''))>500)){totalCol=c;break;}
+  }
+  let mo=0,yr=26;
+  for (let c=23;c<(totalCol>0?totalCol:(rows[0]||[]).length);c++) {
+    const hasData=dataRows.some(r=>{const v=parseFloat((r[c]||'').replace(/,/g,''));return !isNaN(v)&&v>0;});
+    if (hasData){colMap[c]=MONTH_NAMES[mo]+yr; mo++; if(mo>=12){mo=0;yr++;}}
+  }
 
   const runners=[];
   for (let i=hIdx+1;i<rows.length;i++) {
@@ -424,19 +435,18 @@ function parseAllSummary(rows) {
     const raw=(row[nameCol]||'').trim();
     if (!raw||raw==='Name'||/^[\s-]+$/.test(raw)) continue;
 
-    // Extract team from suffix like "-Stream", "-SSO", "-CGC"
     const tm=(raw.match(/[-–]\s*(Stream|SSO|CGC)\s*$/i)||[])[1]||'OTHER';
     const name=raw.replace(/[-–]\s*(Stream|SSO|CGC)\s*$/i,'')
                   .replace(/\s*Strava\s*/gi,'').replace(/@\S+/g,'').trim();
     if (!name) continue;
 
     const monthly={};
-    for (const {col,label} of mCols) {
+    for (const [col,label] of Object.entries(colMap)) {
       const v=parseFloat((row[col]||'').replace(/,/g,''));
       if (!isNaN(v)&&v>0) monthly[label]=v;
     }
 
-    let total=parseFloat((row[totalCol]||'').replace(/,/g,''));
+    let total=totalCol>0?parseFloat((row[totalCol]||'').replace(/,/g,'')):-1;
     if (isNaN(total)||total<=0) total=Object.values(monthly).reduce((s,v)=>s+v,0);
     if (total>0||Object.keys(monthly).length>0)
       runners.push({name,fullName:raw,team:tm.toUpperCase(),monthly,total});
@@ -794,17 +804,4 @@ function renderCurrentMonth(){
     const bg=isP?'linear-gradient(90deg,#10b981,#34d399)':isO?'linear-gradient(90deg,#f59e0b,#fbbf24)':'linear-gradient(90deg,#ef4444,#fca5a5)';
     const pc=isP?'var(--green)':isO?'var(--gold)':'var(--red)';
     const needed=Math.max(0,r.minKm-r.km);
-    const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(1)+' KM in '+daysLeft+' days':'Month ended';
-    return `<div class="rb-block">
-      <div class="rb-top">
-        <div class="rb-av" style="background:${avC[i%avC.length]}">${(r.runner||'?').slice(0,2).toUpperCase()}</div>
-        <div class="rb-meta">
-          <div class="rb-name">${r.runner||'Runner '+r.no}<span class="chip ${cc}">${ct}</span></div>
-          <div class="rb-detail">Target: ${r.minKm} KM${r.timeStr?' · ⏱ '+r.timeStr:''}</div>
-        </div>
-        <div class="rb-pct" style="color:${pc}">${pct.toFixed(0)}%</div>
-      </div>
-      <div class="rb-pbar"><div class="rb-fill" style="width:${Math.min(pct,100)}%;background:${bg}"></div></div>
-      <div class="rb-stats"><span style="font-weight:700">${r.km.toFixed(2)} KM</span><span style="color:${pc};font-weight:600">${note}</span></div>
-    </div>`;
-  }).joi
+    const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(
