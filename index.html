@@ -1153,9 +1153,10 @@ function renderRaceMonth(month) {
           if (cmR.km > existing.mk) existing.mk = cmR.km;
           return;
         }
-        // Only add as new entry if we can find the runner in All Summary (prevent duplicates)
+        // Only add as new entry if runner is in All Summary with a valid company team
         const base = r.find(x => x.name === cmR.runner);
-        if (base) {
+        const validTeam = base && /^(STREAM|SSO|CGC)$/i.test(base.team||'');
+        if (validTeam) {
           data.push({name: cmR.runner, team: base.team, monthly:{}, total: base.total||0, mk: cmR.km});
         }
       });
