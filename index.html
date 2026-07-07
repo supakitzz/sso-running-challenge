@@ -790,7 +790,7 @@ function renderOverview() {
       const d=p2>0?Math.round((c2-p2)/p2*100):null;
       const cls=d===null?'mc-same':d>0?'mc-up':'mc-down';
       const sign=d===null?'–':d>0?'+'+d+'%':d+'%';
-      return `<div class="mc-row"><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.8)">${x.name}</span><div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:rgba(255,255,255,.4)">${p2||–} → <strong style="color:#fff">${c2||–}</strong> KM</span><span class="mc-delta ${cls}">${sign}</span></div></div>`;
+      return `<div class="mc-row"><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.8)">${x.name}</span><div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:rgba(255,255,255,.4)">${p2||"–"} → <strong style="color:#fff">${c2||"–"}</strong> KM</span><span class="mc-delta ${cls}">${sign}</span></div></div>`;
     }).join('');
     _mcEl.innerHTML=_rows||'<p style="color:var(--muted);font-size:12px;text-align:center;padding:16px">No comparison data</p>';
   } else if(_mcEl){
