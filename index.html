@@ -232,6 +232,36 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .export-btn:hover{background:rgba(139,92,246,.22)}
 /* PB BADGE */
 .pb-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.28);margin-left:6px}
+
+/* RACE MONTH PILLS */
+.race-mo-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);transition:all .15s}
+.race-mo-pill:hover{border-color:rgba(59,130,246,.4);color:#93c5fd}
+.race-mo-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.5);color:#93c5fd}
+/* INDIVIDUAL RACE ROW */
+.irace-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.irace-row:last-child{border-bottom:none}
+.irace-rank{width:28px;text-align:center;flex-shrink:0;font-size:16px}
+.irace-av{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.irace-meta{flex:1;min-width:0}
+.irace-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.irace-bar-bg{height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden}
+.irace-bar-fill{height:100%;border-radius:5px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.irace-km{width:60px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0}
+
+/* RACE MONTH PILLS */
+.race-mo-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);transition:all .15s}
+.race-mo-pill:hover{border-color:rgba(59,130,246,.4);color:#93c5fd}
+.race-mo-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.5);color:#93c5fd}
+/* INDIVIDUAL RACE ROW */
+.irace-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.irace-row:last-child{border-bottom:none}
+.irace-rank{width:28px;text-align:center;flex-shrink:0;font-size:16px}
+.irace-av{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.irace-meta{flex:1;min-width:0}
+.irace-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.irace-bar-bg{height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden}
+.irace-bar-fill{height:100%;border-radius:5px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+.irace-km{width:60px;text-align:right;font-size:13px;font-weight:800;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -376,18 +406,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- RACE -->
   <div class="view" id="view-race">
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-head">Team Race — Total KM <span class="tag tag-live"><div class="tag-dot"></div>Live</span></div>
-      <div id="race-bars" style="padding:8px 0"></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head">Select Month <span class="tag tag-blue" id="race-mo-tag">--</span></div>
+      <div id="race-month-pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
     </div>
-    <div class="g2">
+    <div class="g-32">
       <div class="card">
-        <div class="card-head">Monthly Head-to-Head <span class="tag tag-blue">Per Month</span></div>
-        <div class="ch ch-280"><canvas id="raceChart"></canvas></div>
+        <div class="card-head">Individual Race <span class="tag tag-live"><div class="tag-dot"></div>Animated</span></div>
+        <div id="race-individual-bars" style="padding:4px 0"></div>
       </div>
-      <div class="card">
-        <div class="card-head">Team Summary</div>
-        <div id="race-team-stats"></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="g4" id="race-month-kpis" style="margin-bottom:0"></div>
+        <div class="card">
+          <div class="card-head">Company Breakdown</div>
+          <div id="race-company-breakdown"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1069,68 +1102,92 @@ function exportLeaderboard(){
 }
 
 // ══════════════════════════════════════════════════
-//  TEAM RACE VIEW  (Feature 8)
+//  INDIVIDUAL RACE VIEW  (updated)
 // ══════════════════════════════════════════════════
-function renderTeamRace(){
-  const r=state.runners;
-  const TC={STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
-  const TG={STREAM:'linear-gradient(90deg,#2563eb,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
-  const teams={STREAM:{km:0,cnt:0,months:{}},SSO:{km:0,cnt:0,months:{}},CGC:{km:0,cnt:0,months:{}}};
-  r.forEach(x=>{
-    const t=(x.team||'').toUpperCase();
-    if(!teams[t]) return;
-    teams[t].km+=x.total; teams[t].cnt++;
-    Object.entries(x.monthly||{}).forEach(([m,v])=>{teams[t].months[m]=(teams[t].months[m]||0)+v;});
-  });
-  const maxKm=Math.max(...Object.values(teams).map(t=>t.km),1);
-  const sorted=Object.entries(teams).sort((a,b)=>b[1].km-a[1].km);
-  const medals=['🥇','🥈','🥉'];
-  const el=document.getElementById('race-bars');
-  if(el){
-    el.innerHTML=sorted.map(([name,data],idx)=>{
-      const avg=data.cnt>0?Math.round(data.km/data.cnt):0;
-      return `<div class="race-bar-row">
-        <div class="race-company" style="color:${TC[name]}">${name}</div>
-        <div class="race-bg"><div class="race-fill" style="width:0%;background:${TG[name]}" id="rbar-${name}">${medals[idx]} ${data.cnt} runners &middot; avg ${avg} KM</div></div>
-        <div class="race-km" style="color:${TC[name]}">${data.km.toLocaleString()} KM</div>
-      </div>`;
-    }).join('');
-    setTimeout(()=>{sorted.forEach(([name,data])=>{const b=document.getElementById('rbar-'+name);if(b)b.style.width=Math.round(data.km/maxKm*100)+'%';});},120);
+function renderTeamRace() {
+  const r = state.runners;
+  const allMos = [...new Set(r.flatMap(x => Object.keys(x.monthly||{})))].sort();
+  if (!allMos.length) return;
+  const pillsEl = document.getElementById('race-month-pills');
+  if (pillsEl) {
+    pillsEl.innerHTML = allMos.map(m =>
+      `<div class="race-mo-pill" data-mo="${m}" onclick="renderRaceMonth('${m}')">${m}</div>`
+    ).join('');
   }
-  const allMos=[...new Set(r.flatMap(x=>Object.keys(x.monthly||{})))].sort();
-  if(charts.race) charts.race.destroy();
-  charts.race=new Chart(document.getElementById('raceChart'),{
-    type:'bar',
-    data:{labels:allMos,datasets:Object.entries(TC).map(([tn,color])=>({
-      label:tn,data:allMos.map(m=>teams[tn]?.months[m]||0),
-      backgroundColor:color+'77',borderColor:color,borderWidth:1.5,borderRadius:4
-    }))},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{backgroundColor:'#0f172a'}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
-        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:10}},title:{display:true,text:'Team KM / Month',font:{size:10},color:'#94a3b8'}}}}
-  });
-  const se=document.getElementById('race-team-stats');
-  if(se){
-    se.innerHTML=sorted.map(([name,data],i)=>{
-      const bm=Object.entries(data.months).sort((a,b)=>b[1]-a[1])[0];
-      const avgR=data.cnt>0?Math.round(data.km/data.cnt):0;
-      return `<div class="rb-block">
-        <div class="rb-top">
-          <div class="rb-av" style="background:${TC[name]};font-size:20px">${medals[i]}</div>
-          <div class="rb-meta"><div class="rb-name" style="color:${TC[name]}">${name}</div><div class="rb-detail">${data.cnt} runners &middot; ${Object.keys(data.months).length} active months</div></div>
-          <div class="rb-pct" style="color:${TC[name]}">${data.km.toLocaleString()}</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px">
-          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${avgR}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Avg KM/runner</div></div>
-          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${bm?bm[1].toLocaleString():'–'}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Best month KM</div></div>
-          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${bm?bm[0]:'–'}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Best month</div></div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+  renderRaceMonth(allMos[allMos.length - 1]);
 }
 
+function renderRaceMonth(month) {
+  const r = state.runners;
+  const TC = {STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
+  const TG = {STREAM:'linear-gradient(90deg,#2563eb,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
+  const medals = ['🥇','🥈','🥉'];
+
+  document.querySelectorAll('.race-mo-pill').forEach(p => p.classList.toggle('on', p.dataset.mo === month));
+  const tag = document.getElementById('race-mo-tag');
+  if (tag) tag.textContent = month;
+
+  const data = r.map(x => ({...x, mk: x.monthly?.[month]||0})).filter(x => x.mk > 0).sort((a,b) => b.mk - a.mk);
+
+  const barsEl = document.getElementById('race-individual-bars');
+  if (!barsEl) return;
+
+  if (!data.length) {
+    barsEl.innerHTML = `<p style="color:var(--muted);text-align:center;padding:24px">No data for ${month}</p>`;
+    return;
+  }
+
+  const maxKm = data[0].mk;
+  barsEl.innerHTML = data.map((x, i) => {
+    const t = (x.team||'OTHER').toUpperCase();
+    const col = TC[t]||'#64748b';
+    const grad = TG[t]||'linear-gradient(90deg,#64748b,#94a3b8)';
+    const rankEl = i < 3
+      ? `<span style="font-size:18px">${medals[i]}</span>`
+      : `<span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.28)">${i+1}</span>`;
+    const pct = Math.round(x.mk/maxKm*100);
+    return `<div class="irace-row">
+      <div class="irace-rank">${rankEl}</div>
+      <div class="irace-av" style="background:${col};cursor:pointer" onclick="showRunnerProfile(encodeURIComponent('${x.name}'))">${x.name.slice(0,2).toUpperCase()}</div>
+      <div class="irace-meta">
+        <div class="irace-name">${x.name}<span style="font-size:10px;font-weight:700;color:${col};margin-left:6px">${t}</span></div>
+        <div class="irace-bar-bg"><div class="irace-bar-fill" id="ibar-${i}" style="width:0%;background:${grad}" data-w="${pct}"></div></div>
+      </div>
+      <div class="irace-km" style="color:${col}">${x.mk} KM</div>
+    </div>`;
+  }).join('');
+
+  setTimeout(() => {
+    data.forEach((_, i) => {const b=document.getElementById('ibar-'+i);if(b)b.style.width=b.dataset.w+'%';});
+  }, 80);
+
+  // KPI cards
+  const totalKm = data.reduce((s,x) => s+x.mk, 0);
+  const avgKm = Math.round(totalKm/data.length);
+  const kpiEl = document.getElementById('race-month-kpis');
+  if (kpiEl) {
+    kpiEl.innerHTML = `
+      <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div><div class="stat-icon">🏃</div><div class="stat-val" style="font-size:26px">${data.length}</div><div class="stat-label">Runners</div></div>
+      <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div><div class="stat-icon">📍</div><div class="stat-val" style="font-size:26px">${totalKm.toLocaleString()}</div><div class="stat-label">Total KM</div></div>
+      <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#10b981,#34d399)"></div><div class="stat-icon">⚖️</div><div class="stat-val" style="font-size:26px">${avgKm}</div><div class="stat-label">Avg KM</div></div>
+      <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div><div class="stat-icon">👑</div><div class="stat-val" style="font-size:20px;letter-spacing:-.3px">${data[0]?.name||'–'}</div><div class="stat-label">Top runner</div></div>`;
+  }
+
+  // Company breakdown
+  const coEl = document.getElementById('race-company-breakdown');
+  if (coEl) {
+    const cd = {};
+    data.forEach(x => {const t=(x.team||'OTHER').toUpperCase();if(!cd[t])cd[t]={km:0,cnt:0};cd[t].km+=x.mk;cd[t].cnt++;});
+    const mx = Math.max(...Object.values(cd).map(c=>c.km),1);
+    coEl.innerHTML = Object.entries(cd).sort((a,b)=>b[1].km-a[1].km).map(([name,d])=>`
+      <div class="co-row">
+        <div class="co-dot" style="background:${TC[name]||'#64748b'}"></div>
+        <div class="co-name" style="color:${TC[name]||'#64748b'}">${name}</div>
+        <div class="co-bg"><div class="co-fill" style="width:${Math.round(d.km/mx*100)}%;background:${TC[name]||'#64748b'}"></div></div>
+        <div class="co-stat"><div class="co-km">${d.km.toLocaleString()} KM</div><div class="co-ppl">${d.cnt} runners</div></div>
+      </div>`).join('');
+  }
+}
 // =================================================
 //  INIT
 // =================================================
