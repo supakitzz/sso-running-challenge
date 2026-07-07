@@ -954,8 +954,28 @@ function renderCurrentMonth(){
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#ef4444,#fca5a5)"></div><div class="stat-icon">⚠️</div><div class="stat-val">${behind}</div><div class="stat-label">Need to catch up</div></div>
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#0891b2,#67e8f9)"></div><div class="stat-icon">⏳</div><div class="stat-val">${daysLeft}</div><div class="stat-label">Days remaining</div></div>`;
 
+  // Map currentMonth runner name → All Summary display name using km matching
+  const _cmTabToKey = (tab) => { const m=tab.match(/^([A-Za-z]+)(\d{4})$/); return m?m[1]+m[2].slice(2):null; };
+  const _moKey = _cmTabToKey(cm.tab);
+  const getDisplayName = (runner, km) => {
+    if (_moKey && state.runners?.length) {
+      // 1. KM-based: find closest runner in All Summary with km diff ≤ 2
+      const active = state.runners.filter(r=>(r.monthly?.[_moKey]||0)>0);
+      if (active.length) {
+        const closest = active.sort((a,b)=>Math.abs((a.monthly[_moKey]||0)-km)-Math.abs((b.monthly[_moKey]||0)-km))[0];
+        if (Math.abs((closest.monthly[_moKey]||0)-km)<=2) return closest.name;
+      }
+    }
+    // 2. Prefix match (first word/part before dot)
+    const pfx=runner.split(/[.\s@]/)[0].toLowerCase();
+    const pfxMatch=state.runners?.find(r=>r.name.toLowerCase().startsWith(pfx));
+    if (pfxMatch) return pfxMatch.name;
+    return runner;
+  };
+
   const avC=['#2563eb','#0891b2','#7c3aed','#059669','#d97706','#dc2626','#0f766e','#7e22ce'];
   document.getElementById('curr-runners').innerHTML=cm.runners.map((r,i)=>{
+    const dn=getDisplayName(r.runner,r.km);
     const pct=r.pct||0;
     const isP=r.passed,isO=!isP&&pct>=(today/days*100*0.85);
     const cc=isP?'chip-pass':isO?'chip-on':'chip-warn';
@@ -969,10 +989,10 @@ function renderCurrentMonth(){
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:.8"></div></div>`;
     }).join(''):'';
     return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9">
-      <div style="width:36px;height:36px;border-radius:50%;background:${avC[i%avC.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${r.runner.slice(0,2).toUpperCase()}</div>
+      <div style="width:36px;height:36px;border-radius:50%;background:${avC[i%avC.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${dn.slice(0,2).toUpperCase()}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.9);overflow:hidden;text-overflow:ellipsis">${r.runner}</div>
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.9);overflow:hidden;text-overflow:ellipsis">${dn}</div>
           <span class="chip ${cc}" style="flex-shrink:0">${ct}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -994,7 +1014,7 @@ function renderCurrentMonth(){
     charts.radar=new Chart(document.getElementById('radarChart'),{
       type:'radar',
       data:{
-        labels:rData.map(r=>r.runner.split(' ')[0]),
+        labels:rData.map(r=>getDisplayName(r.runner,r.km).split(' ')[0]),
         datasets:[{label:'Completion %',data:rData.map(r=>Math.min(r.pct||0,120)),
           backgroundColor:'rgba(59,130,246,0.12)',borderColor:'#3b82f6',borderWidth:2,
           pointBackgroundColor:'#3b82f6',pointRadius:3}]
