@@ -591,11 +591,19 @@ function parseMonthSheet(rows, tabName, now) {
     }
     if (noRow>=0) break;
   }
-  if (noRow<0) return parseChampionFallback(rows,result);
-
-  // Skip to first data row (row that starts with "1")
-  let dr=noRow+1;
-  while(dr<rows.length){const v=rows[dr][noCol]?.trim();if(/^\d+$/.test(v)&&+v<=200)break;dr++;}
+  let dr;
+  if (noRow<0) {
+    // No "No." header — auto-detect: find first row where col[0]="1" and col[3] has minKm
+    dr=-1;
+    for (let r=0;r<Math.min(rows.length,15);r++) {
+      if (rows[r][0]?.trim()==='1'&&parseFloat(rows[r][3])>0){dr=r;noCol=0;break;}
+    }
+    if (dr<0) return parseChampionFallback(rows,result);
+  } else {
+    // Skip to first data row (row that starts with "1")
+    dr=noRow+1;
+    while(dr<rows.length){const v=rows[dr][noCol]?.trim();if(/^\d+$/.test(v)&&+v<=200)break;dr++;}
+  }
 
   for (let r=dr;r<rows.length;r++) {
     const row=rows[r];
@@ -1138,9 +1146,17 @@ function renderRaceMonth(month) {
     const tabMatch = moM && cmTab.startsWith(moM[1]) && cmTab.includes(moM[2]);
     if (tabMatch) {
       state.currentMonth.runners.forEach(cmR => {
-        if ((cmR.km||0) > 0 && !data.find(d => d.name === cmR.runner)) {
-          const base = r.find(x => x.name === cmR.runner);
-          data.push({name: cmR.runner, team: base?.team||'OTHER', monthly:{}, total: base?.total||0, mk: cmR.km});
+        if ((cmR.km||0) <= 0) return;
+        // Try exact name match first → update mk if currentMonth is more recent
+        const existing = data.find(d => d.name === cmR.runner);
+        if (existing) {
+          if (cmR.km > existing.mk) existing.mk = cmR.km;
+          return;
+        }
+        // Only add as new entry if we can find the runner in All Summary (prevent duplicates)
+        const base = r.find(x => x.name === cmR.runner);
+        if (base) {
+          data.push({name: cmR.runner, team: base.team, monthly:{}, total: base.total||0, mk: cmR.km});
         }
       });
       data.sort((a,b) => b.mk - a.mk);
