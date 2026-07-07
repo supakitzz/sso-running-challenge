@@ -6,6 +6,7 @@
 <!-- v1783319266 -->
 <title>SSO Running Challenge</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 :root{
@@ -205,6 +206,32 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .hero h1{font-size:22px}
   .stat-val{font-size:26px}
 }
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,5,15,.82);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#0c1628;border:1px solid rgba(255,255,255,.1);border-radius:24px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:fadeIn .2s ease}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:10}
+.modal-close:hover{background:rgba(255,255,255,.18);color:#fff}
+/* RACE */
+.race-bar-row{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.race-bar-row:last-child{margin-bottom:0}
+.race-company{font-size:14px;font-weight:800;width:72px;flex-shrink:0}
+.race-bg{flex:1;height:44px;background:rgba(255,255,255,.05);border-radius:12px;overflow:hidden}
+.race-fill{height:100%;border-radius:12px;display:flex;align-items:center;padding:0 16px;font-size:12px;font-weight:700;color:#fff;transition:width 1.5s cubic-bezier(.4,0,.2,1);min-width:90px;white-space:nowrap;overflow:hidden}
+.race-km{font-size:14px;font-weight:800;width:100px;text-align:right;flex-shrink:0}
+/* MONTH COMPARE */
+.mc-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.mc-row:last-child{border-bottom:none}
+.mc-delta{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+.mc-up{background:rgba(16,185,129,.15);color:#6ee7b7}
+.mc-down{background:rgba(239,68,68,.15);color:#fca5a5}
+.mc-same{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+/* EXPORT */
+.export-btn{background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.28);color:#c4b5fd;font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
+.export-btn:hover{background:rgba(139,92,246,.22)}
+/* PB BADGE */
+.pb-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.28);margin-left:6px}
 </style>
 </head>
 <body>
@@ -226,6 +253,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <button class="nav-tab" onclick="showView('leaderboard',this)"><span>🏆</span><span class="label">Leaderboard</span></button>
     <button class="nav-tab" onclick="showView('performance',this)"><span>📈</span><span class="label">Performance</span></button>
     <button class="nav-tab" onclick="showView('current',this)"><span>🗓</span><span class="label" id="current-tab-label">This Month</span></button>
+    <button class="nav-tab" onclick="showView('race',this)"><span>🏁</span><span class="label">Race</span></button>
   </div>
   <div class="topbar-right">
     <div class="countdown"><div class="countdown-bar"><div class="countdown-fill" id="cd-bar" style="width:100%"></div></div><span id="cd-text">5:00</span></div>
@@ -253,6 +281,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="hero-pill gold" id="pill-km">-- Total KM</div>
     <div class="hero-pill" id="pill-period">Sep 2024 – Present</div>
     <div class="hero-pill">Stream · SSO · CGC</div>
+    <div class="hero-pill" id="pill-daysleft" style="display:none"></div>
     <div class="last-updated" id="last-updated">--</div>
   </div>
 </div>
@@ -295,12 +324,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="ch ch-200"><canvas id="cumulChart"></canvas></div>
       </div>
     </div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-head">This Month vs Last Month <span class="tag tag-blue" id="mc-label">--</span></div>
+      <div id="month-compare" style="max-height:300px;overflow-y:auto"></div>
+    </div>
   </div>
 
   <!-- LEADERBOARD -->
   <div class="view" id="view-leaderboard">
     <div class="card">
-      <div class="card-head">Runner Leaderboard — Total Distance <span class="tag tag-gold">All-Time</span></div>
+      <div class="card-head">Runner Leaderboard — Total Distance <span class="tag tag-gold">All-Time</span><button class="export-btn" onclick="exportLeaderboard()">📸 Share</button></div>
       <div class="search-wrap"><span class="si">🔍</span><input class="search-input" type="text" placeholder="Search runner..." oninput="filterLB(this.value)"></div>
       <div class="filter-row">
         <div class="fp on" onclick="teamFilter('all',this)">All</div>
@@ -337,6 +370,24 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="card">
         <div class="card-head">Monthly KM Distribution</div>
         <div class="ch ch-250"><canvas id="distChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RACE -->
+  <div class="view" id="view-race">
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-head">Team Race — Total KM <span class="tag tag-live"><div class="tag-dot"></div>Live</span></div>
+      <div id="race-bars" style="padding:8px 0"></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head">Monthly Head-to-Head <span class="tag tag-blue">Per Month</span></div>
+        <div class="ch ch-280"><canvas id="raceChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head">Team Summary</div>
+        <div id="race-team-stats"></div>
       </div>
     </div>
   </div>
@@ -637,6 +688,7 @@ function showView(id,btn) {
   document.getElementById('view-'+id).classList.add('active');
   btn.classList.add('active');
   if (id==='performance'&&!charts.perf) buildPerfCharts();
+  if (id==='race') renderTeamRace();
 }
 
 // ══════════════════════════════════════════════════
@@ -650,8 +702,11 @@ function renderAll() {
   const totalKm=r.reduce((s,x)=>s+x.total,0);
   document.getElementById('pill-runners').textContent=r.length+' Runners';
   document.getElementById('pill-km').textContent=totalKm.toLocaleString()+' Total KM';
+  const _n=new Date(),_dim=new Date(_n.getFullYear(),_n.getMonth()+1,0).getDate(),_dl=_dim-_n.getDate();
+  const _dlEl=document.getElementById('pill-daysleft');
+  if(_dlEl){_dlEl.style.display='';_dlEl.textContent=_dl+' days left in '+_n.toLocaleString('default',{month:'short'});_dlEl.className='hero-pill'+(_dl<=5?' gold':'');}
   renderOverview(); renderLeaderboard(); renderCurrentMonth();
-  charts.perf=null; // reset perf charts
+  charts.perf=null; charts.race=null;
 }
 
 // ── OVERVIEW ──────────────────────────────────────
@@ -724,14 +779,36 @@ function renderOverview() {
     <div class="hl hl-blue"><span class="hl-label">👑 Total Distance Leader</span><span class="hl-val">${top?.name} · ${(top?.total||0).toLocaleString()} KM</span></div>
     <div class="hl hl-green"><span class="hl-label">🏢 Top Company</span><span class="hl-val">${topT?.[0]} · ${topT?.[1].toLocaleString()} KM</span></div>
     <div class="hl hl-purple"><span class="hl-label">📅 Months Tracked</span><span class="hl-val">${allMonths.size} months · ${r.length} runners total</span></div>`;
+
+  // Feature 5: month comparison
+  const _sm=[...allMonths].sort(),_cm=_sm[_sm.length-1],_pm=_sm[_sm.length-2];
+  const _mcEl=document.getElementById('month-compare'),_mcLb=document.getElementById('mc-label');
+  if(_mcEl&&_cm&&_pm){
+    if(_mcLb)_mcLb.textContent=_pm+' → '+_cm;
+    const _rows=r.filter(x=>x.monthly?.[_cm]||x.monthly?.[_pm]).slice(0,12).map(x=>{
+      const c2=x.monthly?.[_cm]||0,p2=x.monthly?.[_pm]||0;
+      const d=p2>0?Math.round((c2-p2)/p2*100):null;
+      const cls=d===null?'mc-same':d>0?'mc-up':'mc-down';
+      const sign=d===null?'–':d>0?'+'+d+'%':d+'%';
+      return `<div class="mc-row"><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.8)">${x.name}</span><div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:rgba(255,255,255,.4)">${p2||–} → <strong style="color:#fff">${c2||–}</strong> KM</span><span class="mc-delta ${cls}">${sign}</span></div></div>`;
+    }).join('');
+    _mcEl.innerHTML=_rows||'<p style="color:var(--muted);font-size:12px;text-align:center;padding:16px">No comparison data</p>';
+  } else if(_mcEl){
+    _mcEl.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:16px">Need at least 2 months of data</p>';
+  }
 }
 
 // ── LEADERBOARD ───────────────────────────────────
 function renderLeaderboard() {
   const maxKm=Math.max(...state.runners.map(r=>r.total),1);
-  const tGrad={STREAM:'linear-gradient(90deg,#1d4ed8,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
+  const tGrad={STREAM:'linear-gradient(90deg,#2563eb,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
   const tCls={STREAM:'ts',SSO:'tt',CGC:'tc'};
-  const tBg={STREAM:'#2563eb',SSO:'#7c3aed',CGC:'#059669'};
+  const tBg={STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
+  // PB badge: find best runner in latest month
+  const _allMos=[...new Set(state.runners.flatMap(r=>Object.keys(r.monthly||{})))].sort();
+  const _latestMo=_allMos[_allMos.length-1];
+  let _pbRunner=null,_pbVal=0;
+  if(_latestMo) state.runners.forEach(r=>{const v=r.monthly?.[_latestMo]||0;if(v>_pbVal){_pbVal=v;_pbRunner=r.name;}});
   const data=[...state.runners].filter(r=>{
     const t=(r.team||'').toUpperCase();
     return (lbTeam==='all'||t===lbTeam.toUpperCase())&&(!lbQ||r.name.toLowerCase().includes(lbQ.toLowerCase()));
@@ -749,8 +826,8 @@ function renderLeaderboard() {
     const t=(r.team||'OTHER').toUpperCase();
     return `<tr class="${rank<=3?'top3':''}">
       <td>${rankEl}</td>
-      <td><div class="rc"><div class="av" style="background:${tBg[t]||'#64748b'}">${r.name.slice(0,2).toUpperCase()}</div>
-        <div><div class="rname">${r.name}</div><div class="rteam ${tCls[t]||''}">${t}</div></div></div></td>
+      <td><div class="rc"><div class="av" style="background:${tBg[t]||'#64748b'};cursor:pointer" onclick="showRunnerProfile(encodeURIComponent('${r.name}'))">${r.name.slice(0,2).toUpperCase()}</div>
+        <div><div class="rname" style="cursor:pointer" onclick="showRunnerProfile(encodeURIComponent('${r.name}'))">${r.name}${r.name===_pbRunner?'<span class="pb-badge" title="Best in '+_latestMo+'">&#128293; '+_latestMo+'</span>':''}</div><div class="rteam ${tCls[t]||''}">${t}</div></div></div></td>
       <td><div class="barcell"><div class="barbg"><div class="barfill" style="width:${pct}%;background:${tGrad[t]||'#64748b'}"></div></div><div class="kmv">${r.total.toLocaleString()}</div></div></td>
       <td class="r" style="font-weight:600">${months}</td>
     </tr>`;
@@ -908,6 +985,152 @@ function fmtTime(d){
   return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
 
+
+// ══════════════════════════════════════════════════
+//  RUNNER PROFILE MODAL  (Feature 7)
+// ══════════════════════════════════════════════════
+function showRunnerProfile(encodedName) {
+  const name=decodeURIComponent(encodedName);
+  const r=state.runners.find(x=>x.name===name);
+  if(!r) return;
+  const tBg={STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
+  const t=(r.team||'OTHER').toUpperCase();
+  const months=Object.keys(r.monthly||{}).sort();
+  const vals=months.map(m=>r.monthly[m]);
+  const best=vals.length?Math.max(...vals):0;
+  const avg=vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length):0;
+  const cumul=vals.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
+  const col=tBg[t]||'#64748b';
+  document.getElementById('profile-header').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:4px">
+      <div style="width:56px;height:56px;border-radius:16px;background:${col};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0">${name.slice(0,2).toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px">${name}</div>
+        <div style="font-size:13px;font-weight:600;color:${col};margin-top:3px">${t} &middot; ${months.length} months active</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px">${r.total.toLocaleString()}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4)">Total KM</div>
+      </div>
+    </div>`;
+  document.getElementById('profile-stats').innerHTML=`
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.07);text-align:center"><div style="font-size:22px;font-weight:800;color:#fff">${best}</div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Best Month</div></div>
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.07);text-align:center"><div style="font-size:22px;font-weight:800;color:#fff">${avg}</div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Avg / Month</div></div>
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.07);text-align:center"><div style="font-size:22px;font-weight:800;color:#fff">${months.length}</div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Months Active</div></div>`;
+  document.getElementById('profile-months').innerHTML=months.map((m,i)=>`
+    <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:6px 10px;border:1px solid rgba(255,255,255,.07)">
+      <div style="color:rgba(255,255,255,.35);font-size:9px">${m}</div>
+      <div style="font-weight:700;color:#fff;font-size:12px">${vals[i]} KM</div>
+    </div>`).join('');
+  if(charts.profile) charts.profile.destroy();
+  charts.profile=new Chart(document.getElementById('profileChart'),{
+    type:'bar',
+    data:{labels:months,datasets:[
+      {label:'Monthly KM',data:vals,backgroundColor:col+'55',borderColor:col,borderWidth:2,borderRadius:4},
+      {label:'Cumulative',data:cumul,type:'line',borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:2,pointRadius:2,tension:0.4,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},tooltip:{backgroundColor:'#0f172a'}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:10}}},
+        y2:{position:'right',grid:{display:false},ticks:{font:{size:10}}}}}
+  });
+  document.getElementById('profile-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeProfile(){
+  document.getElementById('profile-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ══════════════════════════════════════════════════
+//  EXPORT LEADERBOARD  (Feature 6)
+// ══════════════════════════════════════════════════
+function exportLeaderboard(){
+  const btn=document.querySelector('.export-btn');
+  if(typeof html2canvas!=='undefined'){
+    const el=document.querySelector('#view-leaderboard .card');
+    if(!el) return;
+    if(btn){btn.textContent='⏳ Saving...';btn.disabled=true;}
+    html2canvas(el,{backgroundColor:'#0c1628',scale:2,logging:false,useCORS:true}).then(canvas=>{
+      const a=document.createElement('a');a.download='sso-leaderboard.png';a.href=canvas.toDataURL();a.click();
+      if(btn){btn.textContent='✓ Saved!';btn.disabled=false;setTimeout(()=>{btn.innerHTML='📸 Share';},2200);}
+    }).catch(()=>{if(btn){btn.innerHTML='📸 Share';btn.disabled=false;}});
+    return;
+  }
+  const lines=['🏆 SSO Running Challenge — Leaderboard',''];
+  state.runners.slice(0,10).forEach((r,i)=>{
+    const m=['🥇','🥈','🥉'];
+    lines.push(`${m[i]||((i+1)+'. ')}${r.name} (${r.team}) — ${r.total.toLocaleString()} KM`);
+  });
+  lines.push('','📊 https://supakitzz.github.io/sso-running-challenge/');
+  navigator.clipboard?.writeText(lines.join('\n'));
+  if(btn){btn.textContent='✓ Copied!';setTimeout(()=>{btn.innerHTML='📸 Share';},2000);}
+}
+
+// ══════════════════════════════════════════════════
+//  TEAM RACE VIEW  (Feature 8)
+// ══════════════════════════════════════════════════
+function renderTeamRace(){
+  const r=state.runners;
+  const TC={STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
+  const TG={STREAM:'linear-gradient(90deg,#2563eb,#60a5fa)',SSO:'linear-gradient(90deg,#7c3aed,#a78bfa)',CGC:'linear-gradient(90deg,#059669,#34d399)'};
+  const teams={STREAM:{km:0,cnt:0,months:{}},SSO:{km:0,cnt:0,months:{}},CGC:{km:0,cnt:0,months:{}}};
+  r.forEach(x=>{
+    const t=(x.team||'').toUpperCase();
+    if(!teams[t]) return;
+    teams[t].km+=x.total; teams[t].cnt++;
+    Object.entries(x.monthly||{}).forEach(([m,v])=>{teams[t].months[m]=(teams[t].months[m]||0)+v;});
+  });
+  const maxKm=Math.max(...Object.values(teams).map(t=>t.km),1);
+  const sorted=Object.entries(teams).sort((a,b)=>b[1].km-a[1].km);
+  const medals=['🥇','🥈','🥉'];
+  const el=document.getElementById('race-bars');
+  if(el){
+    el.innerHTML=sorted.map(([name,data],idx)=>{
+      const avg=data.cnt>0?Math.round(data.km/data.cnt):0;
+      return `<div class="race-bar-row">
+        <div class="race-company" style="color:${TC[name]}">${name}</div>
+        <div class="race-bg"><div class="race-fill" style="width:0%;background:${TG[name]}" id="rbar-${name}">${medals[idx]} ${data.cnt} runners &middot; avg ${avg} KM</div></div>
+        <div class="race-km" style="color:${TC[name]}">${data.km.toLocaleString()} KM</div>
+      </div>`;
+    }).join('');
+    setTimeout(()=>{sorted.forEach(([name,data])=>{const b=document.getElementById('rbar-'+name);if(b)b.style.width=Math.round(data.km/maxKm*100)+'%';});},120);
+  }
+  const allMos=[...new Set(r.flatMap(x=>Object.keys(x.monthly||{})))].sort();
+  if(charts.race) charts.race.destroy();
+  charts.race=new Chart(document.getElementById('raceChart'),{
+    type:'bar',
+    data:{labels:allMos,datasets:Object.entries(TC).map(([tn,color])=>({
+      label:tn,data:allMos.map(m=>teams[tn]?.months[m]||0),
+      backgroundColor:color+'77',borderColor:color,borderWidth:1.5,borderRadius:4
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11}}},tooltip:{backgroundColor:'#0f172a'}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:10}},title:{display:true,text:'Team KM / Month',font:{size:10},color:'#94a3b8'}}}}
+  });
+  const se=document.getElementById('race-team-stats');
+  if(se){
+    se.innerHTML=sorted.map(([name,data],i)=>{
+      const bm=Object.entries(data.months).sort((a,b)=>b[1]-a[1])[0];
+      const avgR=data.cnt>0?Math.round(data.km/data.cnt):0;
+      return `<div class="rb-block">
+        <div class="rb-top">
+          <div class="rb-av" style="background:${TC[name]};font-size:20px">${medals[i]}</div>
+          <div class="rb-meta"><div class="rb-name" style="color:${TC[name]}">${name}</div><div class="rb-detail">${data.cnt} runners &middot; ${Object.keys(data.months).length} active months</div></div>
+          <div class="rb-pct" style="color:${TC[name]}">${data.km.toLocaleString()}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px">
+          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${avgR}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Avg KM/runner</div></div>
+          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${bm?bm[1].toLocaleString():'–'}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Best month KM</div></div>
+          <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;text-align:center"><div style="font-weight:700;color:#fff">${bm?bm[0]:'–'}</div><div style="color:rgba(255,255,255,.4);margin-top:2px">Best month</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
 // =================================================
 //  INIT
 // =================================================
@@ -916,6 +1139,25 @@ document.addEventListener('DOMContentLoaded',function(){
   startCountdown();
 });
 </script>
+
+<!-- RUNNER PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeProfile()">&#215;</button>
+    <div style="padding:28px 28px 0">
+      <div id="profile-header"></div>
+    </div>
+    <div style="padding:20px 28px 28px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:12px">MONTHLY HISTORY</div>
+      <div class="ch ch-200"><canvas id="profileChart"></canvas></div>
+      <div id="profile-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px"></div>
+      <div style="margin-top:20px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px">ALL MONTHS</div>
+        <div id="profile-months" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
+  </div>
+</div>
 </div><!-- /content-area -->
 </body>
 </html>
