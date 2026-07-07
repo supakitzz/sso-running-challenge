@@ -1131,6 +1131,22 @@ function renderRaceMonth(month) {
 
   const data = r.map(x => ({...x, mk: x.monthly?.[month]||0})).filter(x => x.mk > 0).sort((a,b) => b.mk - a.mk);
 
+  // Supplement with current month tab runners (handles month key mismatch e.g. 'July26' vs 'July2026')
+  if (state.currentMonth?.runners?.length) {
+    const cmTab = state.currentMonth.tab; // e.g. 'July2026'
+    const moM = month.match(/^([A-Za-z]+)(\d{2})$/);
+    const tabMatch = moM && cmTab.startsWith(moM[1]) && cmTab.includes(moM[2]);
+    if (tabMatch) {
+      state.currentMonth.runners.forEach(cmR => {
+        if ((cmR.km||0) > 0 && !data.find(d => d.name === cmR.runner)) {
+          const base = r.find(x => x.name === cmR.runner);
+          data.push({name: cmR.runner, team: base?.team||'OTHER', monthly:{}, total: base?.total||0, mk: cmR.km});
+        }
+      });
+      data.sort((a,b) => b.mk - a.mk);
+    }
+  }
+
   const barsEl = document.getElementById('race-individual-bars');
   if (!barsEl) return;
 
