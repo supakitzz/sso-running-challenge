@@ -1057,7 +1057,9 @@ function showRunnerProfile(encodedName) {
   if(!r) return;
   const tBg={STREAM:'#3b82f6',SSO:'#8b5cf6',CGC:'#10b981'};
   const t=(r.team||'OTHER').toUpperCase();
-  const months=Object.keys(r.monthly||{}).sort();
+  const _MO_P={S0:0,Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,July:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+  const _moValP=(s)=>{const mv=s.match(/^([A-Za-z]+)(\d+)$/);if(!mv)return 0;const yr=+mv[2]+(+mv[2]<50?2000:1900);return yr*100+(_MO_P[mv[1]]||0);};
+  const months=Object.keys(r.monthly||{}).sort((a,b)=>_moValP(a)-_moValP(b));
   const vals=months.map(m=>r.monthly[m]);
   const best=vals.length?Math.max(...vals):0;
   const avg=vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length):0;
