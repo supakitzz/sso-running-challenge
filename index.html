@@ -1038,7 +1038,7 @@ function renderCurrentMonth(){
 
   // Pace table
   const paceR=cm.runners.filter(r=>!r.passed&&r.minKm>0&&daysLeft>0)
-    .map(r=>({name:r.runner,remaining:+(r.minKm-r.km).toFixed(1),dailyNeeded:+((r.minKm-r.km)/daysLeft).toFixed(2)}))
+    .map(r=>({name:getDisplayName(r.runner,r.km),remaining:+(r.minKm-r.km).toFixed(1),dailyNeeded:+((r.minKm-r.km)/daysLeft).toFixed(2)}))
     .sort((a,b)=>a.dailyNeeded-b.dailyNeeded);
   document.getElementById('pace-table').innerHTML=paceR.length?
     `<table style="width:100%;font-size:11px;border-collapse:collapse">
