@@ -618,6 +618,9 @@ function parseMonthSheet(rows, tabName, now) {
     const timeStr=(row[noCol+6]||'').trim();
     const daily={};
     for (let c=noCol+7;c<row.length;c++){const v=parseFloat(row[c]);if(!isNaN(v)&&v>0)daily[c-(noCol+6)]=v;}
+    // Also scan time row (r+1): some KM cells export empty in gviz CSV due to formula type,
+    // but the corresponding time cells are correctly exported. Use time as sentinel.
+    if (r+1<rows.length){const tr=rows[r+1];for(let c=noCol+7;c<row.length;c++){const k=c-(noCol+6);if(!daily[k]){const tv=(tr[c]||'').trim();if(tv&&tv!=='-')daily[k]=0.001;}}}
     result.runners.push({no,runner,champion:champ,minKm,km,pct:Math.round(pct*100)/100,timeStr,daily,passed:minKm>0&&km>=minKm});
   }
   return result;
