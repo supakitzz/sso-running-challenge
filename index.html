@@ -995,7 +995,7 @@ function renderCurrentMonth(){
     const note=isP?'+'+( r.km-r.minKm).toFixed(1)+' KM over 🎉':daysLeft>0?'Need '+needed.toFixed(1)+' KM in '+daysLeft+' days':'Month ended';
     // Check inactive last 4 days (not passed, today>=4, no km in day today-3..today)
     const inactive4=!isP&&today>=5&&[1,2,3,4].every(d=>!(r.daily?.[today-d]>0));
-    const inactiveBadge=inactive4?`<span style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;flex-shrink:0">💤 ไม่วิ่ง 4 วัน</span>`:'';
+    const inactiveBadge=inactive4?`<span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.45);color:#fca5a5;font-size:13px;font-weight:700;padding:3px 10px;border-radius:7px;flex-shrink:0;letter-spacing:.2px">💤 ไม่วิ่ง 4 วัน</span>`:'';
     const dailyBars=r.daily&&Object.keys(r.daily).length?Object.entries(r.daily).slice(-14).map(([d,v])=>{
       const h=Math.min(Math.round(v/30*100),100);
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:.8"></div></div>`;
