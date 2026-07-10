@@ -958,18 +958,24 @@ function renderCurrentMonth(){
   const _cmTabToKey = (tab) => { const m=tab.match(/^([A-Za-z]+)(\d{4})$/); return m?m[1]+m[2].slice(2):null; };
   const _moKey = _cmTabToKey(cm.tab);
   const getDisplayName = (runner, km) => {
+    // 1. For email-style names (contain . or @): prefix match FIRST to avoid km-collision
+    if (/[.@]/.test(runner)) {
+      const pfx=runner.split(/[.\s@]/)[0].toLowerCase();
+      const pfxMatch=state.runners?.find(r=>r.name.toLowerCase()===pfx||r.name.toLowerCase().startsWith(pfx));
+      if (pfxMatch) return pfxMatch.name;
+    }
+    // 2. KM-based: find closest runner in All Summary with km diff ≤ 2
     if (_moKey && state.runners?.length) {
-      // 1. KM-based: find closest runner in All Summary with km diff ≤ 2
       const active = state.runners.filter(r=>(r.monthly?.[_moKey]||0)>0);
       if (active.length) {
         const closest = active.sort((a,b)=>Math.abs((a.monthly[_moKey]||0)-km)-Math.abs((b.monthly[_moKey]||0)-km))[0];
         if (Math.abs((closest.monthly[_moKey]||0)-km)<=2) return closest.name;
       }
     }
-    // 2. Prefix match (first word/part before dot)
-    const pfx=runner.split(/[.\s@]/)[0].toLowerCase();
-    const pfxMatch=state.runners?.find(r=>r.name.toLowerCase().startsWith(pfx));
-    if (pfxMatch) return pfxMatch.name;
+    // 3. Generic prefix fallback
+    const pfx2=runner.split(/[.\s@]/)[0].toLowerCase();
+    const pfxMatch2=state.runners?.find(r=>r.name.toLowerCase().startsWith(pfx2));
+    if (pfxMatch2) return pfxMatch2.name;
     return runner;
   };
 
