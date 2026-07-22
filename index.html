@@ -1022,8 +1022,11 @@ function renderCurrentMonth(){
     const inactive4=!isP&&today>=4&&[0,1,2,3].every(d=>!(r.daily?.[today-d]>0));
     const inactiveBadge=inactive4?`<span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.45);color:#fca5a5;font-size:13px;font-weight:700;padding:3px 10px;border-radius:7px;flex-shrink:0;letter-spacing:.2px">💤 ไม่วิ่ง 4 วัน</span>`:'';
     const dailyBars=r.daily&&Object.keys(r.daily).length?Object.entries(r.daily).slice(-14).map(([d,v])=>{
-      const h=Math.min(Math.round(v/30*100),100);
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:.8"></div></div>`;
+      const isSentinel=v<=0.001;
+      const h=isSentinel?18:Math.min(Math.round(v/30*100),100);
+      const op=isSentinel?.35:.8;
+      const ttl=isSentinel?'Day '+d+': ran (distance not recorded)':'Day '+d+': '+v+' KM';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center" title="${ttl}"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:${op}"></div></div>`;
     }).join(''):'';
     return `<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(15,23,42,.07)">
       <div style="width:44px;height:44px;border-radius:50%;background:${avC[i%avC.length]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${dn.slice(0,2).toUpperCase()}</div>
