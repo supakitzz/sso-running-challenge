@@ -179,32 +179,64 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .hl-green{background:rgba(16,185,129,.08);border-color:#10b981}.hl-green .hl-val{color:#059669}
 .hl-purple{background:rgba(139,92,246,.08);border-color:#8b5cf6}.hl-purple .hl-val{color:#7c3aed}
 
-@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g-32,.g-23{grid-template-columns:1fr}}
+/* ===== RESPONSIVE ===== */
+/* Small laptop / large tablet */
+@media(max-width:1100px){
+  .main{max-width:100%}
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g-32,.g-23{grid-template-columns:1fr}
+}
+/* Tablet — collapse sidebar to icon rail */
 @media(max-width:900px){
   .topbar{width:64px}
   .brand-name{display:none}
+  .brand{justify-content:center;padding:18px 8px}
   .nav-tab span.label{display:none}
   .nav-tab{justify-content:center;padding:10px}
   .nav-tab span:first-child{font-size:18px}
   .topbar-right{padding:10px 8px}
   .sync-info,.countdown,.sync-btn{display:none}
   .content-area{margin-left:64px}
-}
-@media(max-width:600px){
-  .topbar{position:fixed;left:0;right:0;top:auto;bottom:0;width:100%;height:auto;flex-direction:row;border-right:none;border-top:1px solid rgba(15,23,42,.08);padding:0;background:rgba(255,255,255,.92)}
-  .brand{display:none}
-  .nav-tabs{flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;flex:1}
-  .nav-tab{flex-direction:column;gap:2px;font-size:10px;padding:6px 8px;flex:1;justify-content:center;border:none !important}
-  .nav-tab span.label{display:block;font-size:9px}
-  .topbar-right{display:none}
-  .content-area{margin-left:0;padding-bottom:calc(70px + env(safe-area-inset-bottom))}
-  .main{padding:16px 16px 24px}
-  .hero{padding:20px 16px}
+  .main{padding:24px 22px 48px}
+  .hero{padding:28px 22px 24px}
   .g2{grid-template-columns:1fr}
-  .g4{grid-template-columns:repeat(2,1fr)}
-  .share-notice{padding:12px 16px}
+}
+/* Mobile — bottom nav bar */
+@media(max-width:600px){
+  .topbar{position:fixed;left:0;right:0;top:auto;bottom:0;width:100%;height:auto;flex-direction:row;border-right:none;border-top:1px solid rgba(15,23,42,.08);padding:0;background:rgba(255,255,255,.97);box-shadow:0 -2px 16px rgba(15,23,42,.06)}
+  .brand{display:none}
+  .nav-tabs{flex-direction:row;padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;flex:1;gap:0}
+  .nav-tab{flex-direction:column;gap:3px;font-size:10px;padding:6px 4px;flex:1;justify-content:center;border:none !important;border-radius:8px}
+  .nav-tab.active{background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(124,58,237,.12));color:#4338ca;box-shadow:none}
+  .nav-tab span.label{display:block;font-size:9px}
+  .nav-tab span:first-child{font-size:19px}
+  .topbar-right{display:none}
+  .content-area{margin-left:0;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  .main{padding:16px 14px 24px}
+  .hero{padding:20px 16px}
   .hero h1{font-size:22px}
+  .hero-sub{font-size:12px}
+  .hero-meta{gap:8px;margin-top:14px}
+  .last-updated{display:none}
+  .stat{padding:16px}
   .stat-val{font-size:26px}
+  .stat-icon{font-size:19px;margin-bottom:10px}
+  .card{padding:16px;border-radius:14px}
+  .g4{grid-template-columns:repeat(2,1fr);gap:12px}
+  .g2,.g-32,.g-23{gap:14px}
+  .share-notice{padding:12px 16px}
+  .race-company{width:56px;font-size:12px}
+  .race-bg{height:36px}
+  .race-fill{padding:0 10px;font-size:11px;min-width:64px}
+  .race-km{width:64px;font-size:12px}
+  .modal-box{border-radius:18px}
+}
+/* Small phones */
+@media(max-width:380px){
+  .g4{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-val{font-size:23px}
+  .stat-label{font-size:11px}
+  .nav-tab span.label{font-size:8px}
 }
 
 /* MODAL */
@@ -1021,13 +1053,7 @@ function renderCurrentMonth(){
     // Check inactive last 4 days (not passed, today>=4, no km in day today-3..today)
     const inactive4=!isP&&today>=4&&[0,1,2,3].every(d=>!(r.daily?.[today-d]>0));
     const inactiveBadge=inactive4?`<span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.45);color:#fca5a5;font-size:13px;font-weight:700;padding:3px 10px;border-radius:7px;flex-shrink:0;letter-spacing:.2px">💤 ไม่วิ่ง 4 วัน</span>`:'';
-    const dailyBars=r.daily&&Object.keys(r.daily).length?Object.entries(r.daily).slice(-14).map(([d,v])=>{
-      const isSentinel=v<=0.001;
-      const h=isSentinel?18:Math.min(Math.round(v/30*100),100);
-      const op=isSentinel?.35:.8;
-      const ttl=isSentinel?'Day '+d+': ran (distance not recorded)':'Day '+d+': '+v+' KM';
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center" title="${ttl}"><div style="width:6px;height:${h}%;min-height:2px;background:${avC[i%avC.length]};border-radius:3px 3px 0 0;opacity:${op}"></div></div>`;
-    }).join(''):'';
+    const dailyBars='';
     return `<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(15,23,42,.07)">
       <div style="width:44px;height:44px;border-radius:50%;background:${avC[i%avC.length]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${dn.slice(0,2).toUpperCase()}</div>
       <div style="flex:1;min-width:0">
