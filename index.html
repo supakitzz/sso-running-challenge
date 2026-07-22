@@ -493,10 +493,8 @@ Chart.defaults.color = 'rgba(15,23,42,0.55)';
 Chart.defaults.borderColor = 'rgba(15,23,42,0.08)';
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
 
-const SHEET_ID  = '1q6-j_DQGN1zdtv8WA0OZYvJfkTN3_eUFc8fiTm9mae4';
-const GVIZ      = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+const API_URL   = 'https://script.google.com/macros/s/AKfycbzp0ayK3ojeL1gFXOi26OnrFApxXEM4uaGF412bneigGqog3h5EYwSbAAcwP_TJJLIJ/exec';
 const REFRESH   = 300; // seconds
-const MONTH_TAB = { 0:'Jan',1:'Feb',2:'Mar',3:'Apr',4:'May',5:'Jun',6:'July',7:'Aug',8:'Sep',9:'Oct',10:'Nov',11:'Dec' };
 
 let state  = { runners:[], currentMonth:null, updatedAt:null };
 let charts = {};
@@ -504,181 +502,9 @@ let lbSort = { key:'total', dir:-1 };
 let lbTeam = 'all', lbQ = '';
 let cdTimer, cdRemain = REFRESH;
 
-// ══════════════════════════════════════════════════
-//  CSV PARSER
-// ══════════════════════════════════════════════════
-function parseCSV(text) {
-  const rows = [];
-  let row=[], field='', inQ=false;
-  for (let i=0; i<text.length; i++) {
-    const ch=text[i];
-    if (inQ) {
-      if (ch==='"') { if (text[i+1]==='"'){field+='"';i++;}else inQ=false; }
-      else field+=ch;
-    } else {
-      if (ch==='"') { inQ=true; }
-      else if (ch===',') { row.push(field.trim()); field=''; }
-      else if (ch==='\n'||ch==='\r') {
-        if (ch==='\r'&&text[i+1]==='\n') i++;
-        row.push(field.trim()); field='';
-        if (row.some(c=>c!=='')) rows.push(row);
-        row=[];
-      } else field+=ch;
-    }
-  }
-  if (field||row.length){row.push(field.trim());if(row.some(c=>c!==''))rows.push(row);}
-  return rows;
-}
-
-// ══════════════════════════════════════════════════
-//  FETCH SHEET
-// ══════════════════════════════════════════════════
-async function fetchSheet(name) {
-  const url = GVIZ + encodeURIComponent(name) + '&t=' + Date.now();
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const text = await resp.text();
-  // gviz returns error JSON for non-existent/private sheets
-  if (!text || text.trim().startsWith('{') || text.includes('"status":"error"')) {
-    throw new Error(`Sheet "${name}" not accessible`);
-  }
-  return parseCSV(text);
-}
-
-// ══════════════════════════════════════════════════
-//  PARSE ALL SUMMARY
-// ══════════════════════════════════════════════════
-function parseAllSummary(rows) {
-  // Find header row containing "Name"
-  let hIdx=0;
-  for (let i=0;i<Math.min(6,rows.length);i++) {
-    if (rows[i].some(c=>c.trim()==='Name')) { hIdx=i; break; }
-  }
-  const hdr = rows[hIdx];
-  const nameCol = hdr.findIndex(c=>c.trim()==='Name');
-  if (nameCol<0) return [];
-
-  // NOTE: gviz CSV exports merged-cell headers as empty strings, so month labels
-  // are never returned. We build the column→month map from known fixed positions
-  // (2024-2025) + dynamic detection for 2026+ months.
-  const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','July','Aug','Sep','Oct','Nov','Dec'];
-  const colMap={};
-  // 2024: S01-S03 at cols 2-4, Sep-Dec at cols 5-8
-  ['S01','S02','S03','Sep24','Oct24','Nov24','Dec24'].forEach((m,i)=>colMap[i+2]=m);
-  // 2025: Jan-Dec at cols 10-21
-  ['Jan25','Feb25','Mar25','Apr25','May25','Jun25','Jul25','Aug25','Sep25','Oct25','Nov25','Dec25']
-    .forEach((m,i)=>colMap[i+10]=m);
-
-  // 2026+: dynamic — start at col 23, skip blank-separator cols, stop before Total
-  const dataRows=rows.slice(hIdx+1).filter(r=>(r[nameCol]||'').trim()&&(r[nameCol]||'').trim()!=='Name');
-  // Total col = last col where any runner has value > 500
-  let totalCol=-1;
-  for (let c=(rows[0]||[]).length-1;c>nameCol;c--) {
-    if (dataRows.some(r=>parseFloat((r[c]||'').replace(/,/g,''))>500)){totalCol=c;break;}
-  }
-  let mo=0,yr=26;
-  for (let c=23;c<(totalCol>0?totalCol:(rows[0]||[]).length);c++) {
-    const hasData=dataRows.some(r=>{const v=parseFloat((r[c]||'').replace(/,/g,''));return !isNaN(v)&&v>0;});
-    if (hasData){colMap[c]=MONTH_NAMES[mo]+yr; mo++; if(mo>=12){mo=0;yr++;}}
-  }
-
-  const runners=[];
-  for (let i=hIdx+1;i<rows.length;i++) {
-    const row=rows[i];
-    const raw=(row[nameCol]||'').trim();
-    if (!raw||raw==='Name'||/^[\s-]+$/.test(raw)) continue;
-
-    const tm=(raw.match(/[-–]\s*(Stream|SSO|CGC)\s*$/i)||[])[1]||'OTHER';
-    const name=raw.replace(/[-–]\s*(Stream|SSO|CGC)\s*$/i,'')
-                  .replace(/\s*Strava\s*/gi,'').replace(/@\S+/g,'').trim();
-    if (!name) continue;
-
-    const monthly={};
-    for (const [col,label] of Object.entries(colMap)) {
-      const v=parseFloat((row[col]||'').replace(/,/g,''));
-      if (!isNaN(v)&&v>0) monthly[label]=v;
-    }
-
-    let total=totalCol>0?parseFloat((row[totalCol]||'').replace(/,/g,'')):-1;
-    if (isNaN(total)||total<=0) total=Object.values(monthly).reduce((s,v)=>s+v,0);
-    if (total>0||Object.keys(monthly).length>0)
-      runners.push({name,fullName:raw,team:tm.toUpperCase(),monthly,total});
-  }
-  return runners.sort((a,b)=>b.total-a.total);
-}
-
-// ══════════════════════════════════════════════════
-//  PARSE CURRENT MONTH
-// ══════════════════════════════════════════════════
-function parseMonthSheet(rows, tabName, now) {
-  const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  const result={tab:tabName,daysInMonth,today:now.getDate(),runners:[]};
-
-  // Find "No." header row
-  let noRow=-1,noCol=0;
-  for (let r=0;r<Math.min(rows.length,15);r++) {
-    for (let c=0;c<Math.min(rows[r].length,5);c++) {
-      const v=rows[r][c].trim();
-      if (v==='No.'||v==='No'){noRow=r;noCol=c;break;}
-    }
-    if (noRow>=0) break;
-  }
-  let dr;
-  if (noRow<0) {
-    // No "No." header — auto-detect: find first row where col[0]="1" and col[3] has minKm
-    dr=-1;
-    for (let r=0;r<Math.min(rows.length,15);r++) {
-      if (rows[r][0]?.trim()==='1'&&parseFloat(rows[r][3])>0){dr=r;noCol=0;break;}
-    }
-    if (dr<0) return parseChampionFallback(rows,result);
-  } else {
-    // Skip to first data row (row that starts with "1")
-    dr=noRow+1;
-    while(dr<rows.length){const v=rows[dr][noCol]?.trim();if(/^\d+$/.test(v)&&+v<=200)break;dr++;}
-  }
-
-  for (let r=dr;r<rows.length;r++) {
-    const row=rows[r];
-    const no=parseInt(row[noCol]);
-    if (isNaN(no)||no<=0) continue;
-    const runner = cleanName(row[noCol+1]||'');
-    const champ  = (row[noCol+2]||'').trim();
-    const minKm  = parseFloat(row[noCol+3])||0;
-    const km     = parseFloat((row[noCol+4]||'').replace(/,/g,''))||0;
-    const pctRaw = parseFloat((row[noCol+5]||'').replace('%',''))||0;
-    const pct    = pctRaw||(minKm>0?Math.round(km/minKm*10000)/100:0);
-    const timeStr=(row[noCol+6]||'').trim();
-    const daily={};
-    for (let c=noCol+7;c<row.length;c++){const v=parseFloat(row[c]);if(!isNaN(v)&&v>0)daily[c-(noCol+6)]=v;}
-    // Also scan time row (r+1): some KM cells export empty in gviz CSV due to formula type,
-    // but the corresponding time cells are correctly exported. Use time as sentinel.
-    if (r+1<rows.length){const tr=rows[r+1];for(let c=noCol+7;c<row.length;c++){const k=c-(noCol+6);if(!daily[k]){const tv=(tr[c]||'').trim();if(tv&&tv!=='-')daily[k]=0.001;}}}
-    result.runners.push({no,runner,champion:champ,minKm,km,pct:Math.round(pct*100)/100,timeStr,daily,passed:minKm>0&&km>=minKm});
-  }
-  return result;
-}
-
-function parseChampionFallback(rows,result) {
-  for (let r=0;r<rows.length;r++) {
-    const row=rows[r];
-    const champ=(row[0]||'').trim();
-    if (!champ||/champion|min|no\.|runner/i.test(champ)) continue;
-    const minKm=parseFloat(row[1])||0;
-    const km=parseFloat((row[2]||'').replace(/,/g,''))||0;
-    const pct=parseFloat((row[3]||'').replace('%',''))||(minKm>0?km/minKm*100:0);
-    if (km>0&&minKm>0)
-      result.runners.push({no:r,runner:champ,champion:champ,minKm,km,pct:Math.round(pct*100)/100,timeStr:row[4]||'',daily:{},passed:km>=minKm});
-  }
-  return result;
-}
-
-function cleanName(raw) {
-  return (raw||'').replace(/\s*Strava\s*/gi,'').replace(/@\S+/g,'').trim();
-}
-
-// ══════════════════════════════════════════════════
-//  FETCH DATA  (main entry point)
-// ══════════════════════════════════════════════════
+// ==================================================
+//  FETCH DATA  — single JSON endpoint (Apps Script Web App)
+// ==================================================
 async function fetchData(manual=false) {
   if (manual) { cdRemain=REFRESH; document.getElementById('sync-btn').disabled=true; }
   document.getElementById('loading').classList.remove('hide');
@@ -686,44 +512,18 @@ async function fetchData(manual=false) {
   document.getElementById('error-banner').classList.remove('show');
 
   try {
-    // 1) All Summary
-    document.getElementById('loading-text').textContent='Reading All Summary...';
-    const summaryRows = await fetchSheet('All Summary');
-    state.runners = parseAllSummary(summaryRows);
-    if (!state.runners.length) throw new Error('No runner data found in "All Summary" tab. Check sheet name and sharing settings.');
+    const resp = await fetch(API_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
 
-    // 1.5) Optional "Runners" mapping tab: colA=raw name, colB=display name
-    state.nameMap = {};
-    try {
-      const mapRows = await fetchSheet('Runners');
-      for (const row of mapRows) {
-        const raw=(row[0]||'').trim(), disp=(row[1]||'').trim();
-        if (!raw||!disp||/^raw|^name|^runner/i.test(raw)) continue;
-        state.nameMap[raw.toLowerCase()]=disp;                       // full raw
-        state.nameMap[cleanName(raw).toLowerCase()]=disp;            // cleaned
-        state.nameMap[raw.split(/[@\s]/)[0].toLowerCase()]=disp;     // email prefix
-      }
-    } catch(e){/* tab not present — heuristic fallback */}
+    state.runners      = data.runners || [];
+    state.nameMap      = data.nameMap || {};
+    state.currentMonth = (data.currentMonth && !data.currentMonth.error) ? data.currentMonth : null;
+    state.updatedAt    = new Date();
+    if (!state.runners.length) throw new Error('No runner data returned from API.');
 
-    // 2) Current month — try multiple tab name candidates
-    document.getElementById('loading-text').textContent='Reading current month data...';
-    const now=new Date();
-    const m=now.getMonth(), y=now.getFullYear(), sy=String(y).slice(2);
-    const base=MONTH_TAB[m];
-    const candidates=[base+y, base+sy, base.slice(0,3)+y, base.slice(0,3)+sy, base, base.toLowerCase()+y];
-    let cmResult=null;
-    for (const c of candidates) {
-      try {
-        const rows=await fetchSheet(c);
-        if (rows.length>2) { cmResult=parseMonthSheet(rows,c,now); break; }
-      } catch(e){/* try next */}
-    }
-    state.currentMonth=cmResult;
-    state.updatedAt=new Date();
-
-    // Hide share notice on success
     document.getElementById('share-notice').classList.remove('show');
-
     renderAll();
     const dot=document.getElementById('sync-dot');
     dot.style.background='var(--green)'; dot.classList.add('sync-blink');
@@ -731,20 +531,17 @@ async function fetchData(manual=false) {
     document.getElementById('sync-label').textContent=ts;
     document.getElementById('last-updated').textContent='Synced '+ts;
     document.getElementById('footer-updated').textContent='Last synced: '+ts;
-    if (cmResult) document.getElementById('current-tab-label').textContent=cmResult.tab;
+    if (state.currentMonth) document.getElementById('current-tab-label').textContent=state.currentMonth.tab;
 
   } catch(err) {
     console.error(err);
-    // Show share notice if it looks like a CORS / private sheet error
-    const isAccess = err.message.includes('not accessible')||err.message.includes('Failed to fetch')||err.message.includes('NetworkError');
+    const isAccess = /Failed to fetch|NetworkError|HTTP/.test(err.message);
     if (isAccess) document.getElementById('share-notice').classList.add('show');
-
     const banner=document.getElementById('error-banner');
     banner.textContent='⚠ '+err.message+(state.runners.length?' — showing cached data.':'');
     banner.classList.add('show');
     const dot=document.getElementById('sync-dot');
     dot.style.background='var(--red)'; dot.classList.remove('sync-blink');
-
     if (!state.runners.length) { document.getElementById('loading').classList.add('hide'); return; }
     renderAll();
   } finally {
@@ -752,6 +549,7 @@ async function fetchData(manual=false) {
     document.getElementById('sync-btn').disabled=false;
   }
 }
+
 
 // ══════════════════════════════════════════════════
 //  COUNTDOWN
@@ -1003,41 +801,8 @@ function renderCurrentMonth(){
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#ef4444,#fca5a5)"></div><div class="stat-icon">⚠️</div><div class="stat-val">${behind}</div><div class="stat-label">Need to catch up</div></div>
     <div class="stat"><div class="bar" style="background:linear-gradient(90deg,#0891b2,#67e8f9)"></div><div class="stat-icon">⏳</div><div class="stat-val">${daysLeft}</div><div class="stat-label">Days remaining</div></div>`;
 
-  // Map currentMonth runner name → All Summary display name using km matching
-  const _cmTabToKey = (tab) => { const m=tab.match(/^([A-Za-z]+)(\d{4})$/); return m?m[1]+m[2].slice(2):null; };
-  const _moKey = _cmTabToKey(cm.tab);
-  const getDisplayName = (runner, km) => {
-    // 0a. "Runners" mapping tab from Google Sheet (exact → prefix)
-    if (state.nameMap) {
-      const rl=runner.toLowerCase();
-      if (state.nameMap[rl]) return state.nameMap[rl];
-      const rp=rl.split(/[@\s]/)[0];
-      if (state.nameMap[rp]) return state.nameMap[rp];
-      for (const k in state.nameMap) { if (k.startsWith(rl)||rl.startsWith(k)) return state.nameMap[k]; }
-    }
-    // 0. Explicit aliases for plain Strava usernames (no dot/@ after cleanName)
-    const _al={'wizardzaza':'Tao','rusmelody':'Rus'};
-    if (_al[runner.toLowerCase()]) return _al[runner.toLowerCase()];
-    // 1. For email-style names (contain . or @): prefix match FIRST to avoid km-collision
-    if (/[.@]/.test(runner)) {
-      const pfx=runner.split(/[.\s@]/)[0].toLowerCase();
-      const pfxMatch=state.runners?.find(r=>r.name.toLowerCase()===pfx||r.name.toLowerCase().startsWith(pfx));
-      if (pfxMatch) return pfxMatch.name;
-    }
-    // 2. KM-based: find closest runner in All Summary with km diff ≤ 2
-    if (_moKey && state.runners?.length) {
-      const active = state.runners.filter(r=>(r.monthly?.[_moKey]||0)>0);
-      if (active.length) {
-        const closest = active.sort((a,b)=>Math.abs((a.monthly[_moKey]||0)-km)-Math.abs((b.monthly[_moKey]||0)-km))[0];
-        if (Math.abs((closest.monthly[_moKey]||0)-km)<=2) return closest.name;
-      }
-    }
-    // 3. Generic prefix fallback
-    const pfx2=runner.split(/[.\s@]/)[0].toLowerCase();
-    const pfxMatch2=state.runners?.find(r=>r.name.toLowerCase().startsWith(pfx2));
-    if (pfxMatch2) return pfxMatch2.name;
-    return runner;
-  };
+  // Server (Apps Script) already resolves display names — passthrough.
+  const getDisplayName = (runner) => runner || '';
 
   const avC=['#2563eb','#0891b2','#7c3aed','#059669','#d97706','#dc2626','#0f766e','#7e22ce'];
   document.getElementById('curr-runners').innerHTML=cm.runners.map((r,i)=>{
